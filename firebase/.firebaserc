@@ -1,0 +1,6 @@
+// carrier-ops-hub/firebase/.firebaserc
+{
+  "projects": {
+    "default": "carrier-ops-hub"
+  }
+}

@@ -1,0 +1,17 @@
+// carrier-ops-hub/apps/functions/package.json
+{
+  "name": "functions",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "deploy": "firebase deploy --only functions"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

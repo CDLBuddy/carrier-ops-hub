@@ -1,0 +1,30 @@
+// carrier-ops-hub/firebase/storage.rules
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // TODO: Define proper storage rules in Phase 3
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Documents
+    match /documents/{loadId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    // Driver profile photos
+    match /drivers/{driverId}/photo {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

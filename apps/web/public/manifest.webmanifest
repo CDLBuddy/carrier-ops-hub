@@ -1,0 +1,17 @@
+// carrier-ops-hub/apps/web/public/manifest.webmanifest
+{
+  "name": "Carrier Ops Hub",
+  "short_name": "Carrier Ops",
+  "description": "Modern TMS for small trucking carriers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

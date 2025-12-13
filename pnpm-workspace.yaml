@@ -1,0 +1,5 @@
+# carrier-ops-hub/pnpm-workspace.yaml
+
+packages:
+  - 'apps/*'
+  - 'packages/*'

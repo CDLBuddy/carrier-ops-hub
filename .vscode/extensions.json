@@ -1,0 +1,10 @@
+// carrier-ops-hub/.vscode/extensions.json
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "firebase.vscode-firebase-explorer",
+    "usernamehw.errorlens"
+  ]
+}
