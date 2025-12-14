@@ -3,5 +3,5 @@
   "devCommand": "pnpm dev",
   "installCommand": "cd ../.. && pnpm install",
   "framework": "vite",
-  "outputDirectory": "dist"
+  "outputDirectory": "./dist"
 }
