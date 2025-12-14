@@ -5,16 +5,16 @@ import { logger } from '../shared/logger';
 import { evaluateHosRisk } from '../domain/alerts';
 
 export const nightlyComplianceSweep = functions.pubsub
-  .schedule('0 2 * * *') // Run at 2 AM daily
-  .timeZone('America/New_York')
-  .onRun(async (context) => {
-    logger.info('Starting nightly compliance sweep');
+    .schedule('0 2 * * *') // Run at 2 AM daily
+    .timeZone('America/New_York')
+    .onRun(async (context) => {
+        logger.info('Starting nightly compliance sweep');
 
-    // TODO: Implement compliance checks
-    // - Check all active drivers for HOS violations
-    // - Check vehicle inspections due
-    // - Check insurance/license expirations
-    // - Generate alerts for issues found
+        // TODO: Implement compliance checks
+        // - Check all active drivers for HOS violations
+        // - Check vehicle inspections due
+        // - Check insurance/license expirations
+        // - Generate alerts for issues found
 
-    logger.info('Nightly compliance sweep complete');
-  });
+        logger.info('Nightly compliance sweep complete');
+    });

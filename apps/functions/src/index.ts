@@ -12,3 +12,6 @@ export const samsaraWebhook = http.samsaraWebhook;
 export const motiveWebhook = http.motiveWebhook;
 
 export const nightlyComplianceSweep = jobs.nightlyComplianceSweep;
+
+// Callable functions
+export { bootstrapFleet } from './callable/bootstrapFleet';

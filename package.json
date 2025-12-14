@@ -1,20 +1,28 @@
-// carrier-ops-hub/package.json
 {
   "name": "carrier-ops-hub",
   "version": "0.1.0",
   "private": true,
   "description": "Modern TMS for small trucking carriers",
   "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "typecheck": "turbo typecheck"
+    "dev": "pnpm --filter web dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:emulators": "pnpm exec firebase --config firebase/firebase.json emulators:start --project dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "format": "pnpm -r format",
+    "firebase:deploy": "pnpm exec firebase --config firebase/firebase.json deploy --project dev"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3",
+    "firebase-tools": "^13.27.0"
+  },
   "engines": {
     "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
+    "pnpm": ">=9.0.0"
   },
-  "packageManager": "pnpm@8.15.0"
+  "packageManager": "pnpm@9.15.0"
 }

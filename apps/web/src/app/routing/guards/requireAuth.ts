@@ -1,13 +1,10 @@
 // carrier-ops-hub/apps/web/src/app/routing/guards/requireAuth.ts
 
 import { redirect } from '@tanstack/react-router';
+import type { AuthContextValue } from '@/app/providers/AuthContext';
 
-export function requireAuth() {
-  // TODO: Check if user is authenticated
-  // If not, redirect to /auth/sign-in
-  const isAuthenticated = false; // Placeholder
-  
-  if (!isAuthenticated) {
-    throw redirect({ to: '/auth/sign-in' });
-  }
+export function requireAuth(auth: AuthContextValue) {
+    if (!auth.user) {
+        throw redirect({ to: '/auth/sign-in' });
+    }
 }

@@ -1,25 +1,17 @@
 // carrier-ops-hub/packages/shared/src/schemas/expense.ts
 
-// TODO: Replace with Zod schemas in Phase 3
+import { z } from 'zod';
 
-export const ExpenseSchema = {
-  id: 'string',
-  loadId: 'string',
-  type: 'string',
-  amountCents: 'number',
-  description: 'string',
-  receiptUrl: 'string | null',
-  submittedBy: 'string',
-  createdAt: 'date',
-};
+export const ExpenseSchema = z.object({
+    id: z.string(),
+    fleetId: z.string(),
+    loadId: z.string(),
+    type: z.enum(['FUEL', 'TOLLS', 'PARKING', 'MEALS', 'MAINTENANCE', 'OTHER']),
+    amountCents: z.number().int().min(0),
+    description: z.string(),
+    receiptUrl: z.string().url().nullable(),
+    submittedBy: z.string(),
+    createdAt: z.number(),
+});
 
-export type Expense = {
-  id: string;
-  loadId: string;
-  type: string;
-  amountCents: number;
-  description: string;
-  receiptUrl: string | null;
-  submittedBy: string;
-  createdAt: Date;
-};
+export type Expense = z.infer<typeof ExpenseSchema>;

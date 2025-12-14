@@ -1,22 +1,24 @@
 // carrier-ops-hub/apps/web/vite.config.ts
 
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
-import path from 'path';
+import react from '@vitejs/plugin-react-swc';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
-  plugins: [
-    TanStackRouterVite(),
-    react(),
-  ],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+    plugins: [
+        TanStackRouterVite({
+            target: 'react',
+            autoCodeSplitting: true,
+            routesDirectory: './src/app/routing/routes',
+            generatedRouteTree: './src/app/routing/routeTree.gen.ts',
+            routeFileIgnorePattern: '.ts$',
+        }),
+        react(),
+        tsconfigPaths(),
+    ],
+    server: {
+        port: 3000,
+        open: true,
     },
-  },
-  server: {
-    port: 3000,
-    open: true,
-  },
 });

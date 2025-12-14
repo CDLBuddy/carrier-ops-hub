@@ -15,17 +15,21 @@ build/
 .env
 .env.local
 .env.*.local
+apps/**/.env.local
+apps/**/.env.*.local
 
 # Firebase
 .firebase/
+firebase/.firebase/
+firebase/**/emulator-data/
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
 firebase-export-*/
 *-emulator-*.log
 
-# TanStack Router generated
-apps/web/src/app/routing/routeTree.gen.ts
+# Vercel
+.vercel/
 
 # IDE
 .vscode/*

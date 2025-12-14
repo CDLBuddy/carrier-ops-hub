@@ -1,14 +1,28 @@
-// carrier-ops-hub/packages/shared/package.json
 {
-  "name": "@carrier-ops-hub/shared",
-  "version": "0.1.0",
+  "name": "@coh/shared",
+  "version": "0.0.0",
   "private": true,
+  "type": "module",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch"
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "format": "prettier -w ."
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "@types/node": "^22.10.2"
+  }
 }

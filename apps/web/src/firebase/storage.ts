@@ -1,11 +1,11 @@
 // carrier-ops-hub/apps/web/src/firebase/storage.ts
 
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
-import { app } from './app';
+import { firebaseApp } from './app';
 
-export const storage = getStorage(app);
+export const storage = getStorage(firebaseApp);
 
-// Connect to emulator in development
-if (import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true') {
-  connectStorageEmulator(storage, 'localhost', 9199);
+// Connect to Storage Emulator in development mode only
+if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true') {
+    connectStorageEmulator(storage, 'localhost', 9199);
 }

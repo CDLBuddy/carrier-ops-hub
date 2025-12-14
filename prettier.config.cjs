@@ -1,7 +1,7 @@
 // carrier-ops-hub/prettier.config.cjs
 
 module.exports = {
-  semi: true,
+  semi: false,
   singleQuote: true,
   trailingComma: 'es5',
   printWidth: 100,

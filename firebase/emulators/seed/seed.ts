@@ -4,16 +4,16 @@
 // This script should populate Firebase emulators with test data
 
 export async function seedEmulators() {
-  console.log('Seeding Firebase emulators...');
-  
-  // TODO: Create test users
-  // TODO: Create test drivers
-  // TODO: Create test loads
-  // TODO: Create test documents
-  
-  console.log('Seed complete!');
+    console.log('Seeding Firebase emulators...');
+
+    // TODO: Create test users
+    // TODO: Create test drivers
+    // TODO: Create test loads
+    // TODO: Create test documents
+
+    console.log('Seed complete!');
 }
 
 if (require.main === module) {
-  seedEmulators().catch(console.error);
+    seedEmulators().catch(console.error);
 }

@@ -3,13 +3,13 @@
 // Selectors for load card display
 
 export function selectLoadCardData(load: unknown) {
-  // TODO: Transform load data for card display
-  return {
-    id: 'load-id',
-    origin: 'City A',
-    destination: 'City B',
-    status: 'IN_TRANSIT',
-    pickupDate: new Date(),
-    deliveryDate: new Date(),
-  };
+    // TODO: Transform load data for card display
+    return {
+        id: 'load-id',
+        origin: 'City A',
+        destination: 'City B',
+        status: 'IN_TRANSIT',
+        pickupDate: new Date(),
+        deliveryDate: new Date(),
+    };
 }

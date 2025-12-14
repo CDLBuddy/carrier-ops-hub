@@ -1,17 +1,24 @@
 // carrier-ops-hub/apps/web/src/app/routing/routes/__root.tsx
 
-import { createRootRoute, Outlet } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/router-devtools';
+import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
+import { TanStackRouterDevtools } from '@tanstack/router-devtools'
+import type { AuthContextValue } from '@/app/providers/AuthContext'
 
-export const rootRoute = createRootRoute({
+interface RouterContext {
+  auth: AuthContextValue
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
-});
+})
 
 function RootComponent() {
   return (
     <>
-      <Outlet />
+      <div style={{ minHeight: '100vh' }}>
+        <Outlet />
+      </div>
       {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-right" />}
     </>
-  );
+  )
 }

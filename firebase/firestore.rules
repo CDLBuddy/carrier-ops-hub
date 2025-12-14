@@ -4,33 +4,79 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // TODO: Define proper security rules in Phase 3
     
     // Helper functions
     function isAuthenticated() {
       return request.auth != null;
     }
     
-    function hasRole(role) {
-      return isAuthenticated() && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    function hasFleetId() {
+      return isAuthenticated() && request.auth.token.fleetId is string;
     }
     
-    // Default deny all (customize per collection)
+    function matchesFleetId(fleetId) {
+      return hasFleetId() && request.auth.token.fleetId == fleetId;
+    }
+    
+    // Default deny all
     match /{document=**} {
       allow read, write: if false;
     }
     
-    // Users collection
-    match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if false; // Admin only via functions
+    // Users can read/write their own profile
+    match /users/{uid} {
+      allow read, write: if isAuthenticated() && request.auth.uid == uid;
     }
     
-    // Loads collection
+    // Fleet documents - user must belong to the fleet
+    match /fleets/{fleetId} {
+      allow read: if matchesFleetId(fleetId);
+      allow write: if matchesFleetId(fleetId);
+      // TODO: Add owner-only write restrictions
+    }
+    
+    // Tenant data collections - enforce fleetId matching
     match /loads/{loadId} {
-      allow read: if isAuthenticated();
-      allow write: if hasRole('DISPATCHER') || hasRole('OWNER');
+      allow read: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+      allow create: if hasFleetId() && request.resource.data.fleetId == request.auth.token.fleetId;
+      allow update, delete: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+      // TODO: Add role-based restrictions (dispatcher/owner can write)
+    }
+    
+    match /drivers/{driverId} {
+      allow read: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+      allow create: if hasFleetId() && request.resource.data.fleetId == request.auth.token.fleetId;
+      allow update, delete: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+    }
+    
+    match /vehicles/{vehicleId} {
+      allow read: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+      allow create: if hasFleetId() && request.resource.data.fleetId == request.auth.token.fleetId;
+      allow update, delete: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+    }
+    
+    match /events/{eventId} {
+      allow read: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+      allow create: if hasFleetId() && request.resource.data.fleetId == request.auth.token.fleetId;
+      allow update, delete: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+    }
+    
+    match /documents/{documentId} {
+      allow read: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+      allow create: if hasFleetId() && request.resource.data.fleetId == request.auth.token.fleetId;
+      allow update, delete: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+    }
+    
+    match /expenses/{expenseId} {
+      allow read: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+      allow create: if hasFleetId() && request.resource.data.fleetId == request.auth.token.fleetId;
+      allow update, delete: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+    }
+    
+    match /threads/{threadId} {
+      allow read: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+      allow create: if hasFleetId() && request.resource.data.fleetId == request.auth.token.fleetId;
+      allow update, delete: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
     }
   }
 }

@@ -3,13 +3,13 @@
 // Event repository
 
 export const eventsRepo = {
-  async getByLoadId(loadId: string) {
-    // TODO: Fetch events for a load
-    return [];
-  },
+    async getByLoadId(loadId: string) {
+        // TODO: Fetch events for a load
+        return [];
+    },
 
-  async create(data: unknown) {
-    // TODO: Create event
-    throw new Error('Not implemented');
-  },
+    async create(data: unknown) {
+        // TODO: Create event
+        throw new Error('Not implemented');
+    },
 };

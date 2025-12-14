@@ -1,22 +1,25 @@
 // carrier-ops-hub/packages/shared/src/schemas/common.ts
 
-// Common schema definitions
-// TODO: Install and import zod in Phase 3
+import { z } from 'zod';
 
-export const TimestampSchema = {
-  createdAt: 'date',
-  updatedAt: 'date',
-};
+export const TimestampSchema = z.object({
+    createdAt: z.number(),
+    updatedAt: z.number(),
+});
 
-export const AddressSchema = {
-  street: 'string',
-  city: 'string',
-  state: 'string',
-  zip: 'string',
-  country: 'string',
-};
+export const AddressSchema = z.object({
+    street: z.string(),
+    city: z.string(),
+    state: z.string(),
+    zip: z.string(),
+    country: z.string().default('US'),
+});
 
-export const MoneySchema = {
-  cents: 'number',
-  currency: 'string',
-};
+export const MoneySchema = z.object({
+    cents: z.number().int(),
+    currency: z.string().default('USD'),
+});
+
+export type Timestamp = z.infer<typeof TimestampSchema>;
+export type Address = z.infer<typeof AddressSchema>;
+export type Money = z.infer<typeof MoneySchema>;

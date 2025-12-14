@@ -1,23 +1,16 @@
 // carrier-ops-hub/packages/shared/src/schemas/document.ts
 
-// TODO: Replace with Zod schemas in Phase 3
+import { z } from 'zod';
 
-export const DocumentSchema = {
-  id: 'string',
-  loadId: 'string',
-  type: 'string',
-  fileName: 'string',
-  fileUrl: 'string',
-  uploadedBy: 'string',
-  createdAt: 'date',
-};
+export const DocumentSchema = z.object({
+    id: z.string(),
+    fleetId: z.string(),
+    loadId: z.string(),
+    type: z.enum(['BOL', 'POD', 'RATE_CONFIRMATION', 'INVOICE', 'RECEIPT', 'OTHER']),
+    fileName: z.string(),
+    fileUrl: z.string().url(),
+    uploadedBy: z.string(),
+    createdAt: z.number(),
+});
 
-export type Document = {
-  id: string;
-  loadId: string;
-  type: string;
-  fileName: string;
-  fileUrl: string;
-  uploadedBy: string;
-  createdAt: Date;
-};
+export type Document = z.infer<typeof DocumentSchema>;

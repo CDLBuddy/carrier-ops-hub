@@ -1,0 +1,16 @@
+# Dependencies
+**/node_modules
+
+# Build outputs
+**/dist
+**/.turbo
+
+# Generated files
+**/routeTree.gen.ts
+
+# Firebase
+firebase/.firebase
+firebase/**/emulator-data
+
+# Misc
+.vercel

@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "carrier-ops-hub"
+    "default": "carrier-ops-hub",
+    "dev": "carrier-ops-hub"
   }
 }

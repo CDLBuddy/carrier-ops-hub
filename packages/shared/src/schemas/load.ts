@@ -1,31 +1,22 @@
 // carrier-ops-hub/packages/shared/src/schemas/load.ts
 
-// TODO: Replace with Zod schemas in Phase 3
+import { z } from 'zod';
+import { StopSchema } from './stop';
 
-export const LoadSchema = {
-  id: 'string',
-  loadNumber: 'string',
-  status: 'string',
-  driverId: 'string | null',
-  vehicleId: 'string | null',
-  pickupDate: 'date',
-  deliveryDate: 'date',
-  rateCents: 'number',
-  notes: 'string | null',
-  createdAt: 'date',
-  updatedAt: 'date',
-};
+export const LoadSchema = z.object({
+    id: z.string(),
+    fleetId: z.string(),
+    loadNumber: z.string(),
+    status: z.enum(['AVAILABLE', 'ASSIGNED', 'IN_TRANSIT', 'DELIVERED', 'INVOICED', 'PAID', 'CANCELLED']),
+    driverId: z.string().nullable(),
+    vehicleId: z.string().nullable(),
+    stops: z.array(StopSchema).min(2),
+    pickupDate: z.number(),
+    deliveryDate: z.number(),
+    rateCents: z.number().int().min(0),
+    notes: z.string().nullable(),
+    createdAt: z.number(),
+    updatedAt: z.number(),
+});
 
-export type Load = {
-  id: string;
-  loadNumber: string;
-  status: string;
-  driverId: string | null;
-  vehicleId: string | null;
-  pickupDate: Date;
-  deliveryDate: Date;
-  rateCents: number;
-  notes: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
+export type Load = z.infer<typeof LoadSchema>;

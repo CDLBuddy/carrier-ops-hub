@@ -3,8 +3,8 @@
 // App-specific types (not shared with backend)
 
 export interface UIState {
-  isLoading: boolean;
-  error: string | null;
+    isLoading: boolean;
+    error: string | null;
 }
 
 export type ViewMode = 'list' | 'grid' | 'map';
