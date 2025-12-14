@@ -1,5 +1,4 @@
 {
-  "framework": "vite",
   "buildCommand": "cd ../.. && pnpm install && pnpm build --filter=web",
-  "outputDirectory": "../../apps/web/dist"
+  "outputDirectory": "dist"
 }
