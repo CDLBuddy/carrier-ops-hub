@@ -1,7 +1,6 @@
 // carrier-ops-hub/packages/shared/src/schemas/user.ts
 
 import { z } from 'zod';
-import { TimestampSchema } from './common';
 
 export const UserSchema = z.object({
     id: z.string(),

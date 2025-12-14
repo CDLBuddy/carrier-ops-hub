@@ -1,21 +1,21 @@
 // carrier-ops-hub/apps/functions/src/triggers/onEventCreated.ts
 
-import * as functions from 'firebase-functions';
+import { onDocumentCreated } from 'firebase-functions/v2/firestore';
 import { updateDispatcherQueues } from '../domain/readModels';
 import { logger } from '../shared/logger';
 
-export const onEventCreated = functions.firestore
-    .document('events/{eventId}')
-    .onCreate(async (snapshot, context) => {
-        const event = snapshot.data();
-        logger.info('Event created', { eventId: context.params.eventId, event });
+export const onEventCreated = onDocumentCreated(
+    'events/{eventId}',
+    async (event) => {
+        const eventData = event.data?.data();
+        logger.info('Event created', { eventId: event.params.eventId, event: eventData });
 
         // TODO: Implement event-driven logic
         // - Update read models
         // - Send notifications
         // - Trigger alerts
 
-        if (event.loadId) {
-            await updateDispatcherQueues(event.loadId);
+        if (eventData && 'loadId' in eventData && eventData.loadId) {
+            await updateDispatcherQueues(eventData.loadId);
         }
     });

@@ -3,7 +3,7 @@
 import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useAuth } from '@/app/providers/AuthContext'
-import { getFunctions, httpsCallable } from 'firebase/auth'
+import { httpsCallable } from 'firebase/functions'
 import { functions } from '@/firebase/functions'
 import { getLandingPath } from '@/app/routing/navigation/roleLanding'
 import { ROLE_LABELS, type Role } from '@coh/shared'

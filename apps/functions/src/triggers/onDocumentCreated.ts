@@ -1,13 +1,13 @@
 // carrier-ops-hub/apps/functions/src/triggers/onDocumentCreated.ts
 
-import * as functions from 'firebase-functions';
+import { onDocumentCreated as onDocumentCreatedV2 } from 'firebase-functions/v2/firestore';
 import { logger } from '../shared/logger';
 
-export const onDocumentCreated = functions.firestore
-    .document('documents/{documentId}')
-    .onCreate(async (snapshot, context) => {
-        const document = snapshot.data();
-        logger.info('Document created', { documentId: context.params.documentId, document });
+export const onDocumentCreated = onDocumentCreatedV2(
+    'documents/{documentId}',
+    async (event) => {
+        const document = event.data?.data();
+        logger.info('Document created', { documentId: event.params.documentId, document });
 
         // TODO: Implement document processing
         // - OCR for text extraction
