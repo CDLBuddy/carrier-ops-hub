@@ -1,11 +1,11 @@
 // carrier-ops-hub/apps/web/src/ui/patterns/EmptyState.tsx
 
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react'
 
 interface EmptyStateProps {
-  title: string;
-  description?: string;
-  action?: ReactNode;
+  title: string
+  description?: string
+  action?: ReactNode
 }
 
 export function EmptyState({ title, description, action }: EmptyStateProps) {
@@ -15,5 +15,5 @@ export function EmptyState({ title, description, action }: EmptyStateProps) {
       {description && <p>{description}</p>}
       {action && <div className="empty-state-action">{action}</div>}
     </div>
-  );
+  )
 }

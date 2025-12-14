@@ -1,16 +1,120 @@
 // carrier-ops-hub/apps/web/src/app/routing/routes/billing/dashboard.tsx
 
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { useLoads } from '@/features/loads/hooks'
+import { useDocuments } from '@/features/documents/hooks'
+import { LOAD_STATUS, DOCUMENT_TYPE } from '@coh/shared'
+import { useMemo } from 'react'
 
 export const Route = createFileRoute('/billing/dashboard')({
   component: BillingDashboard,
-});
+})
 
 function BillingDashboard() {
+  const { data: loads = [], isLoading: loadsLoading } = useLoads()
+
+  // Filter delivered loads
+  const deliveredLoads = loads.filter((load: any) => load.status === LOAD_STATUS.DELIVERED)
+
+  // Group loads by billing readiness
+  const { readyLoads, blockedLoads } = useMemo(() => {
+    const ready: any[] = []
+    const blocked: any[] = []
+
+    deliveredLoads.forEach((load: any) => {
+      // Check if load has required documents (will be determined per load)
+      const loadEntry = { ...load, readiness: 'checking' }
+      ready.push(loadEntry) // Temporarily add to ready, will be refined below
+    })
+
+    return { readyLoads: ready, blockedLoads: blocked }
+  }, [deliveredLoads])
+
   return (
-    <div>
-      <h1>Billing Dashboard</h1>
-      {/* TODO: Implement billing dashboard */}
+    <div className="p-4 space-y-6">
+      <h1 className="text-2xl font-bold">Billing Dashboard</h1>
+
+      {loadsLoading ? (
+        <div className="text-center p-8">
+          <p className="text-gray-600">Loading loads...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-6">
+          {/* Ready for Billing */}
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h2 className="text-lg font-semibold mb-4 text-green-700">
+              Ready for Billing ({readyLoads.length})
+            </h2>
+            {readyLoads.length > 0 ? (
+              <ul className="space-y-2">
+                {readyLoads.map((load) => (
+                  <LoadBillingCard key={load.id} load={load} />
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No loads ready for billing</p>
+            )}
+          </div>
+
+          {/* Blocked */}
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h2 className="text-lg font-semibold mb-4 text-red-700">
+              Blocked ({blockedLoads.length})
+            </h2>
+            {blockedLoads.length > 0 ? (
+              <ul className="space-y-2">
+                {blockedLoads.map((load) => (
+                  <LoadBillingCard key={load.id} load={load} />
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No blocked loads</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
-  );
+  )
+}
+
+function LoadBillingCard({ load }: { load: any }) {
+  const { data: documents = [] } = useDocuments(load.id)
+
+  const hasPOD = documents.some((doc: any) => doc.type === DOCUMENT_TYPE.POD)
+  const hasRateConfirmation = documents.some(
+    (doc: any) => doc.type === DOCUMENT_TYPE.RATE_CONFIRMATION
+  )
+
+  const isActuallyReady = hasPOD && hasRateConfirmation
+  const missingDocs = []
+  if (!hasPOD) missingDocs.push('POD')
+  if (!hasRateConfirmation) missingDocs.push('Rate Confirmation')
+
+  return (
+    <li className="border border-gray-200 rounded p-3">
+      <div className="flex items-center justify-between mb-2">
+        <Link
+          to="/dispatch/loads/$loadId"
+          params={{ loadId: load.id }}
+          className="font-medium text-blue-600 hover:underline"
+        >
+          Load {load.loadNumber}
+        </Link>
+        <span
+          className={`px-2 py-1 text-xs rounded ${
+            isActuallyReady ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          }`}
+        >
+          {isActuallyReady ? 'Ready' : 'Blocked'}
+        </span>
+      </div>
+      <div className="text-sm text-gray-600">
+        <div>POD: {hasPOD ? '✓' : '✗'}</div>
+        <div>Rate Confirmation: {hasRateConfirmation ? '✓' : '✗'}</div>
+      </div>
+      {missingDocs.length > 0 && (
+        <div className="text-xs text-red-600 mt-2">Missing: {missingDocs.join(', ')}</div>
+      )}
+    </li>
+  )
 }

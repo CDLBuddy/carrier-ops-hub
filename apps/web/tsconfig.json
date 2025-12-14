@@ -1,27 +1,13 @@
 {
-    "extends": "../../tsconfig.base.json",
-    "compilerOptions": {
-        "jsx": "react-jsx",
-        "lib": [
-            "ES2022",
-            "DOM",
-            "DOM.Iterable"
-        ],
-        "paths": {
-            "@/*": [
-                "./src/*"
-            ]
-        },
-        "types": [
-            "vite/client"
-        ]
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "paths": {
+      "@/*": ["./src/*"]
     },
-    "include": [
-        "src",
-        "env.d.ts"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist"
-    ]
+    "types": ["vite/client"]
+  },
+  "include": ["src", "env.d.ts"],
+  "exclude": ["node_modules", "dist"]
 }

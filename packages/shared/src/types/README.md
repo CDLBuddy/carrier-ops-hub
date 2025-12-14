@@ -9,7 +9,7 @@ All domain types should be defined in the `schemas/` directory and exported here
 ## Usage
 
 ```typescript
-import type { Load, Driver, User } from '@carrier-ops-hub/shared';
+import type { Load, Driver, User } from '@carrier-ops-hub/shared'
 ```
 
 ## Why Separate Types?

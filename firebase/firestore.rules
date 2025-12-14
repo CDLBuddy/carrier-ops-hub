@@ -18,6 +18,25 @@ service cloud.firestore {
       return hasFleetId() && request.auth.token.fleetId == fleetId;
     }
     
+    function hasRole(role) {
+      return isAuthenticated() && 
+             request.auth.token.roles is list && 
+             role in request.auth.token.roles;
+    }
+    
+    function isOwnerOrDispatcher() {
+      return hasRole('owner') || hasRole('dispatcher');
+    }
+    
+    function isDriver() {
+      return hasRole('driver');
+    }
+    
+    function driverOnlyUpdatingStatus() {
+      return isDriver() && 
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']);
+    }
+    
     // Default deny all
     match /{document=**} {
       allow read, write: if false;
@@ -38,9 +57,15 @@ service cloud.firestore {
     // Tenant data collections - enforce fleetId matching
     match /loads/{loadId} {
       allow read: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
-      allow create: if hasFleetId() && request.resource.data.fleetId == request.auth.token.fleetId;
-      allow update, delete: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
-      // TODO: Add role-based restrictions (dispatcher/owner can write)
+      allow create: if hasFleetId() && 
+                       isOwnerOrDispatcher() && 
+                       request.resource.data.fleetId == request.auth.token.fleetId;
+      allow update: if hasFleetId() && 
+                       resource.data.fleetId == request.auth.token.fleetId &&
+                       (isOwnerOrDispatcher() || driverOnlyUpdatingStatus());
+      allow delete: if hasFleetId() && 
+                       isOwnerOrDispatcher() && 
+                       resource.data.fleetId == request.auth.token.fleetId;
     }
     
     match /drivers/{driverId} {
@@ -58,13 +83,17 @@ service cloud.firestore {
     match /events/{eventId} {
       allow read: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
       allow create: if hasFleetId() && request.resource.data.fleetId == request.auth.token.fleetId;
-      allow update, delete: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+      allow update, delete: if hasFleetId() && 
+                              isOwnerOrDispatcher() && 
+                              resource.data.fleetId == request.auth.token.fleetId;
     }
     
     match /documents/{documentId} {
       allow read: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
       allow create: if hasFleetId() && request.resource.data.fleetId == request.auth.token.fleetId;
-      allow update, delete: if hasFleetId() && resource.data.fleetId == request.auth.token.fleetId;
+      allow update, delete: if hasFleetId() && 
+                              isOwnerOrDispatcher() && 
+                              resource.data.fleetId == request.auth.token.fleetId;
     }
     
     match /expenses/{expenseId} {

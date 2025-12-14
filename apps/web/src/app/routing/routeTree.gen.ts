@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as MyDayIndexRouteImport } from './routes/my-day/index'
 import { Route as SafetyDashboardRouteImport } from './routes/safety/dashboard'
 import { Route as OwnerDashboardRouteImport } from './routes/owner/dashboard'
@@ -22,6 +23,11 @@ import { Route as AuthBootstrapRouteImport } from './routes/auth/bootstrap'
 import { Route as DriverLoadsLoadIdRouteImport } from './routes/driver/loads.$loadId'
 import { Route as DispatchLoadsLoadIdRouteImport } from './routes/dispatch/loads.$loadId'
 
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MyDayIndexRoute = MyDayIndexRouteImport.update({
   id: '/my-day/',
   path: '/my-day/',
@@ -84,6 +90,7 @@ const DispatchLoadsLoadIdRoute = DispatchLoadsLoadIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
   '/auth/bootstrap': typeof AuthBootstrapRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/sign-in': typeof AuthSignInRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/driver/loads/$loadId': typeof DriverLoadsLoadIdRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/auth/bootstrap': typeof AuthBootstrapRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/sign-in': typeof AuthSignInRoute
@@ -113,6 +121,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/auth/bootstrap': typeof AuthBootstrapRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/sign-in': typeof AuthSignInRoute
@@ -129,6 +138,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/auth/bootstrap'
     | '/auth/forgot-password'
     | '/auth/sign-in'
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/driver/loads/$loadId'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/auth/bootstrap'
     | '/auth/forgot-password'
     | '/auth/sign-in'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/driver/loads/$loadId'
   id:
     | '__root__'
+    | '/'
     | '/auth/bootstrap'
     | '/auth/forgot-password'
     | '/auth/sign-in'
@@ -172,6 +184,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AuthBootstrapRoute: typeof AuthBootstrapRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthSignInRoute: typeof AuthSignInRoute
@@ -188,6 +201,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/my-day/': {
       id: '/my-day/'
       path: '/my-day'
@@ -276,6 +296,7 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AuthBootstrapRoute: AuthBootstrapRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthSignInRoute: AuthSignInRoute,

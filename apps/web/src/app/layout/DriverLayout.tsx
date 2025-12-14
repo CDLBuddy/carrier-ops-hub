@@ -1,9 +1,9 @@
 // carrier-ops-hub/apps/web/src/app/layout/DriverLayout.tsx
 
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react'
 
 interface DriverLayoutProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 export function DriverLayout({ children }: DriverLayoutProps) {
@@ -12,5 +12,5 @@ export function DriverLayout({ children }: DriverLayoutProps) {
       {/* TODO: Add driver-specific navigation */}
       {children}
     </div>
-  );
+  )
 }
