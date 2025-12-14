@@ -61,10 +61,14 @@ function BootstrapPage() {
 
       // Navigate to role landing
       const landing = getLandingPath(selectedRoles)
-      navigate({ to: landing as any })
-    } catch (err: any) {
+      navigate({ to: landing })
+    } catch (err: unknown) {
       console.error('Bootstrap error:', err)
-      setError(err.message || 'Failed to create fleet. Are you running in emulator mode?')
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to create fleet. Are you running in emulator mode?'
+      )
     } finally {
       setLoading(false)
     }

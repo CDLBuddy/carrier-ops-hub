@@ -1,7 +1,5 @@
 // carrier-ops-hub/apps/functions/src/domain/readModels/updateBillingQueues.ts
 
-import { db } from '../../firebaseAdmin'
-
 // Update billing queue read model
 
 export async function updateBillingQueues(loadId: string) {

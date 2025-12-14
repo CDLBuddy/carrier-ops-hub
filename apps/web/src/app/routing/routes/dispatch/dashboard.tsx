@@ -6,6 +6,15 @@ import { requireAuth } from '@/app/routing/guards/requireAuth'
 import { requireRole } from '@/app/routing/guards/requireRole'
 import { useLoads, useCreateLoad } from '@/features/loads/hooks'
 
+interface LoadData {
+  id: string
+  loadNumber?: string
+  status?: string
+  customerName?: string
+  updatedAt?: number
+  [key: string]: unknown
+}
+
 export const Route = createFileRoute('/dispatch/dashboard')({
   beforeLoad: ({ context }) => {
     requireAuth(context.auth)
@@ -15,7 +24,10 @@ export const Route = createFileRoute('/dispatch/dashboard')({
 })
 
 function DispatchDashboard() {
-  const { data: loads, isLoading } = useLoads()
+  const { data: loads, isLoading } = useLoads() as {
+    data: LoadData[] | undefined
+    isLoading: boolean
+  }
   const createLoad = useCreateLoad()
   const [showForm, setShowForm] = useState(false)
   const [customerName, setCustomerName] = useState('')
@@ -181,7 +193,7 @@ function DispatchDashboard() {
 
         {!isLoading && loads && loads.length > 0 && (
           <div>
-            {loads.map((load: any) => (
+            {loads.map((load: LoadData) => (
               <div
                 key={load.id}
                 style={{
@@ -194,15 +206,15 @@ function DispatchDashboard() {
               >
                 <div>
                   <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
-                    {load.loadNumber}
+                    {load.loadNumber ?? 'Unknown'}
                   </div>
                   <div style={{ fontSize: '0.875rem', color: '#666' }}>
-                    Status: {load.status}
+                    Status: {load.status ?? 'Unknown'}
                     {load.customerName && ` • ${load.customerName}`}
                   </div>
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#666' }}>
-                  {new Date(load.updatedAt).toLocaleDateString()}
+                  {load.updatedAt ? new Date(load.updatedAt).toLocaleDateString() : 'Unknown'}
                 </div>
               </div>
             ))}

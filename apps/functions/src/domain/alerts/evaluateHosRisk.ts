@@ -2,7 +2,7 @@
 
 // Evaluate Hours of Service compliance risk
 
-export function evaluateHosRisk(driver: unknown): boolean {
+export function evaluateHosRisk(_driver: unknown): boolean {
   // TODO: Implement HOS risk evaluation
   // - Check remaining drive time
   // - Check time until required break

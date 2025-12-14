@@ -9,7 +9,7 @@ export interface CreateEventParams {
   loadId: string
   type: EventType
   actorUid: string
-  payload?: Record<string, any>
+  payload?: Record<string, unknown>
 }
 
 export const eventsRepo = {

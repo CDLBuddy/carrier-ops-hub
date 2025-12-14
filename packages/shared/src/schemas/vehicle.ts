@@ -5,13 +5,13 @@ import { z } from 'zod'
 export const VehicleSchema = z.object({
   id: z.string(),
   fleetId: z.string(),
-  unitNumber: z.string(),
+  vehicleNumber: z.string(),
   vin: z.string().length(17),
   make: z.string(),
   model: z.string(),
   year: z.number().int().min(1900).max(2100),
   licensePlate: z.string(),
-  isActive: z.boolean().default(true),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'OUT_OF_SERVICE']).default('ACTIVE'),
   createdAt: z.number(),
   updatedAt: z.number(),
 })

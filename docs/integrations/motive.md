@@ -7,6 +7,7 @@ Documentation for integrating with Motive's API and webhooks.
 ## Overview
 
 Motive provides ELD, fleet management, and compliance tools. Similar to Samsara, we integrate for:
+
 - Real-time location tracking
 - HOS compliance monitoring
 - Driver status updates
@@ -21,11 +22,13 @@ Motive provides ELD, fleet management, and compliance tools. Similar to Samsara,
 ## Key Endpoints
 
 ### Get Vehicle Locations
+
 ```
 GET /vehicles/locations
 ```
 
 **Response**:
+
 ```json
 {
   "locations": [
@@ -41,6 +44,7 @@ GET /vehicles/locations
 ```
 
 ### Get HOS Logs
+
 ```
 GET /hos_logs
 ```
@@ -48,6 +52,7 @@ GET /hos_logs
 Returns HOS logs for specified date range and drivers.
 
 ### Get DVIR
+
 ```
 GET /vehicle_inspections
 ```
@@ -66,6 +71,7 @@ Returns driver vehicle inspection reports.
 ### Events We Subscribe To
 
 #### Location Update
+
 ```json
 {
   "event_type": "location_updated",
@@ -82,6 +88,7 @@ Returns driver vehicle inspection reports.
 ```
 
 #### HOS Event
+
 ```json
 {
   "event_type": "hos_event",
@@ -99,6 +106,7 @@ Returns driver vehicle inspection reports.
 ```
 
 #### DVIR Submitted
+
 ```json
 {
   "event_type": "dvir_submitted",
@@ -118,17 +126,10 @@ Returns driver vehicle inspection reports.
 Motive uses HMAC signature verification:
 
 ```typescript
-function verifyMotiveSignature(
-  payload: string,
-  signature: string,
-  secret: string
-): boolean {
-  const hmac = crypto.createHmac('sha256', secret);
-  const expectedSignature = hmac.update(payload).digest('hex');
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  );
+function verifyMotiveSignature(payload: string, signature: string, secret: string): boolean {
+  const hmac = crypto.createHmac('sha256', secret)
+  const expectedSignature = hmac.update(payload).digest('hex')
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))
 }
 ```
 
@@ -137,10 +138,11 @@ Header: `X-Motive-Signature`
 ## Data Mapping
 
 ### Motive Vehicle → Our Vehicle
+
 ```typescript
 {
   externalId: motive.vehicle_id,
-  unitNumber: motive.number,
+  vehicleNumber: motive.number,
   vin: motive.vin,
   make: motive.make,
   model: motive.model,
@@ -149,6 +151,7 @@ Header: `X-Motive-Signature`
 ```
 
 ### Motive Driver → Our Driver
+
 ```typescript
 {
   externalId: motive.driver_id,
@@ -167,11 +170,13 @@ Header: `X-Motive-Signature`
 ## Error Handling
 
 ### Webhook Retries
+
 - Return 2xx for successful processing
 - Return 5xx for temporary failures (Motive will retry)
 - Motive retries up to 5 times with exponential backoff
 
 ### API Best Practices
+
 - Cache vehicle locations (recommended 5 min refresh)
 - Use webhooks for real-time updates instead of polling
 - Handle 429 (rate limit) with exponential backoff
@@ -179,11 +184,13 @@ Header: `X-Motive-Signature`
 ## Testing
 
 ### Sandbox Environment
+
 - **Sandbox URL**: `https://api-sandbox.gomotive.com/v1`
 - Request sandbox credentials from Motive support
 - Sandbox mirrors production but uses test data
 
 ### Local Testing
+
 - Use ngrok or similar to expose local webhook endpoint
 - Point Motive webhook to ngrok URL
 - Test with sandbox account
@@ -191,6 +198,7 @@ Header: `X-Motive-Signature`
 ## Migration from KeepTruckin
 
 If migrating from old KeepTruckin API:
+
 1. Update base URL (gomotive.com instead of keeptruckin.com)
 2. Verify endpoint paths (most unchanged)
 3. Update webhook URLs

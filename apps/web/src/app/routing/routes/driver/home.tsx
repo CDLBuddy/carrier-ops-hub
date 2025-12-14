@@ -7,6 +7,19 @@ import { useLoads } from '@/features/loads/hooks'
 import { useAuth } from '@/app/providers/AuthContext'
 import { LOAD_STATUS } from '@coh/shared'
 
+interface StopData {
+  address?: string
+  [key: string]: unknown
+}
+
+interface LoadData {
+  id: string
+  loadNumber?: string
+  status?: string
+  stops?: StopData[]
+  [key: string]: unknown
+}
+
 export const Route = createFileRoute('/driver/home')({
   beforeLoad: ({ context }) => {
     requireAuth(context.auth)
@@ -16,18 +29,18 @@ export const Route = createFileRoute('/driver/home')({
 })
 
 function DriverHomePage() {
-  const { user } = useAuth()
-  const { data: loads = [], isLoading } = useLoads()
+  const { claims } = useAuth()
+  const { data, isLoading } = useLoads() as { data: LoadData[] | undefined; isLoading: boolean }
 
   // Find loads assigned to this driver that are active
-  const assignedLoads = loads.filter(
-    (load: any) =>
-      load.driverId === user?.uid &&
+  const assignedLoads = (data || []).filter(
+    (load: LoadData) =>
+      load.driverId === claims?.driverId &&
       load.status !== LOAD_STATUS.DELIVERED &&
       load.status !== LOAD_STATUS.CANCELLED
-  )
+  ) as LoadData[]
 
-  const currentLoad: any = assignedLoads[0] // Most recent assigned load
+  const currentLoad: LoadData | undefined = assignedLoads[0] // Most recent assigned load
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -60,7 +73,7 @@ function DriverHomePage() {
           <div style={{ marginBottom: '1.5rem' }}>
             <div style={{ marginBottom: '0.5rem' }}>
               <span style={{ fontWeight: '600' }}>Load #: </span>
-              {currentLoad.loadNumber}
+              {currentLoad.loadNumber ?? 'Unknown'}
             </div>
             <div style={{ marginBottom: '0.5rem' }}>
               <span style={{ fontWeight: '600' }}>Status: </span>
@@ -72,15 +85,17 @@ function DriverHomePage() {
                   fontSize: '0.875rem',
                 }}
               >
-                {currentLoad.status}
+                {currentLoad.status ?? 'Unknown'}
               </span>
             </div>
-            {currentLoad.stops && currentLoad.stops.length > 0 && (
-              <div style={{ marginBottom: '0.5rem' }}>
-                <span style={{ fontWeight: '600' }}>Next Stop: </span>
-                {currentLoad.stops[0].address}
-              </div>
-            )}
+            {currentLoad.stops &&
+              Array.isArray(currentLoad.stops) &&
+              currentLoad.stops.length > 0 && (
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <span style={{ fontWeight: '600' }}>Next Stop: </span>
+                  {currentLoad.stops[0]?.address ?? 'Unknown'}
+                </div>
+              )}
           </div>
           <Link
             to="/driver/loads/$loadId"
@@ -104,14 +119,14 @@ function DriverHomePage() {
                 Other Assigned Loads ({assignedLoads.length - 1})
               </h3>
               <ul style={{ listStyle: 'none', padding: 0 }}>
-                {assignedLoads.slice(1).map((load: any) => (
+                {assignedLoads.slice(1).map((load: LoadData) => (
                   <li key={load.id} style={{ marginBottom: '0.5rem' }}>
                     <Link
                       to="/driver/loads/$loadId"
                       params={{ loadId: load.id }}
                       style={{ color: '#2563eb', textDecoration: 'underline' }}
                     >
-                      Load {load.loadNumber} - {load.status}
+                      Load {load.loadNumber ?? 'Unknown'} - {load.status ?? 'Unknown'}
                     </Link>
                   </li>
                 ))}

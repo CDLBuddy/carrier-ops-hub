@@ -7,6 +7,7 @@ Documentation for integrating with Samsara's API and webhooks.
 ## Overview
 
 Samsara provides telematics, ELD, and fleet management capabilities. We integrate to:
+
 - Track vehicle location in real-time
 - Monitor Hours of Service (HOS) compliance
 - Receive driver status updates
@@ -21,12 +22,15 @@ Samsara provides telematics, ELD, and fleet management capabilities. We integrat
 ## Key Endpoints
 
 ### Get Vehicle Locations
+
 ```
 GET /fleet/vehicles/locations
 ```
+
 Returns current location for all vehicles.
 
 **Response**:
+
 ```json
 {
   "data": [
@@ -44,9 +48,11 @@ Returns current location for all vehicles.
 ```
 
 ### Get Driver HOS
+
 ```
 GET /fleet/hos/logs
 ```
+
 Returns HOS logs for drivers.
 
 ## Webhook Integration
@@ -62,6 +68,7 @@ Returns HOS logs for drivers.
 ### Events We Subscribe To
 
 #### Vehicle Location Updates
+
 ```json
 {
   "eventType": "vehicle.location.update",
@@ -80,6 +87,7 @@ Returns HOS logs for drivers.
 **Our Action**: Update driver activity read model with latest location
 
 #### HOS Status Change
+
 ```json
 {
   "eventType": "hos.status.change",
@@ -95,11 +103,13 @@ Returns HOS logs for drivers.
 }
 ```
 
-**Our Action**: 
+**Our Action**:
+
 - Update driver activity read model
 - Evaluate HOS risk and create alerts if needed
 
 #### Vehicle Fault
+
 ```json
 {
   "eventType": "vehicle.fault",
@@ -122,28 +132,27 @@ Verify webhook signatures to ensure requests are from Samsara:
 
 ```typescript
 function verifySignature(payload: string, signature: string, secret: string): boolean {
-  const hmac = crypto.createHmac('sha256', secret);
-  const digest = hmac.update(payload).digest('hex');
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(digest)
-  );
+  const hmac = crypto.createHmac('sha256', secret)
+  const digest = hmac.update(payload).digest('hex')
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest))
 }
 ```
 
 ## Data Mapping
 
 ### Samsara Vehicle → Our Vehicle
+
 ```typescript
 {
   externalId: samsara.id,
-  unitNumber: samsara.name,
+  vehicleNumber: samsara.name,
   vin: samsara.vin,
   // ... other fields
 }
 ```
 
 ### Samsara Driver → Our Driver
+
 ```typescript
 {
   externalId: samsara.id,
@@ -163,11 +172,13 @@ function verifySignature(payload: string, signature: string, secret: string): bo
 ## Error Handling
 
 ### Webhook Failures
+
 - Return 5xx status code to trigger Samsara retry
 - Samsara retries with exponential backoff
 - After 3 failures, webhook is disabled (manual re-enable required)
 
 ### API Failures
+
 - Implement exponential backoff
 - Cache vehicle locations (5 minute TTL)
 - Degrade gracefully (show last known location)
@@ -175,6 +186,7 @@ function verifySignature(payload: string, signature: string, secret: string): bo
 ## Testing
 
 Use Samsara sandbox environment for development:
+
 - **Sandbox URL**: `https://api-sandbox.samsara.com`
 - Create test vehicles and drivers in sandbox dashboard
 - Use sandbox webhook URL during development

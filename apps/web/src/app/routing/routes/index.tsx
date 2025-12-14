@@ -17,7 +17,7 @@ export const Route = createFileRoute('/')({
 
     // Has fleet → role landing
     const landing = getLandingPath(context.auth.claims.roles)
-    throw redirect({ to: landing as any })
+    throw redirect({ to: landing })
   },
   component: () => (
     <div style={{ padding: '2rem', textAlign: 'center' }}>

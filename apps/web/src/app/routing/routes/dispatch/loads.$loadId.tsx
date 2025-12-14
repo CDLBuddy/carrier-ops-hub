@@ -6,7 +6,39 @@ import { useDocuments, useUploadDocument } from '@/features/documents/hooks'
 import { useEvents } from '@/features/events/hooks'
 import { useState } from 'react'
 import { LOAD_STATUS, DOCUMENT_TYPE } from '@coh/shared'
-import type { LoadData } from '@/services/repos/loads.repo'
+
+interface StopData {
+  type?: string
+  address?: string
+  scheduledDate?: number
+  scheduledTime?: string
+  [key: string]: unknown
+}
+
+interface LoadData {
+  id: string
+  loadNumber?: string
+  status?: string
+  driverId?: string
+  vehicleId?: string
+  stops?: StopData[]
+  [key: string]: unknown
+}
+
+interface DocumentData {
+  id?: string
+  type?: string
+  createdAt?: number
+  url?: string
+  [key: string]: unknown
+}
+
+interface EventData {
+  id?: string
+  type?: string
+  createdAt?: number
+  [key: string]: unknown
+}
 
 export const Route = createFileRoute('/dispatch/loads/$loadId')({
   component: LoadDetailPage,
@@ -14,9 +46,18 @@ export const Route = createFileRoute('/dispatch/loads/$loadId')({
 
 function LoadDetailPage() {
   const { loadId } = Route.useParams()
-  const { data: load, isLoading: loadLoading } = useLoad(loadId)
-  const { data: documents = [], isLoading: docsLoading } = useDocuments(loadId)
-  const { data: events = [], isLoading: eventsLoading } = useEvents(loadId)
+  const { data: load, isLoading: loadLoading } = useLoad(loadId) as {
+    data: LoadData | undefined
+    isLoading: boolean
+  }
+  const { data: documents = [], isLoading: docsLoading } = useDocuments(loadId) as {
+    data: DocumentData[]
+    isLoading: boolean
+  }
+  const { data: events = [], isLoading: eventsLoading } = useEvents(loadId) as {
+    data: EventData[]
+    isLoading: boolean
+  }
   const { mutate: updateLoad } = useUpdateLoad(loadId)
   const { mutate: uploadDocument } = useUploadDocument(loadId)
 
@@ -29,7 +70,7 @@ function LoadDetailPage() {
     const updates: Partial<LoadData> = {
       driverId: selectedDriver,
       vehicleId: selectedVehicle,
-      status: LOAD_STATUS.ASSIGNED as any,
+      status: LOAD_STATUS.ASSIGNED,
     }
     updateLoad(updates)
   }
@@ -54,12 +95,12 @@ function LoadDetailPage() {
   if (loadLoading) return <div className="p-4">Loading load...</div>
   if (!load) return <div className="p-4">Load not found</div>
 
-  const loadData = load as any
+  const loadData: LoadData = load
 
   return (
     <div className="p-4 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Load {loadData.loadNumber}</h1>
+        <h1 className="text-2xl font-bold">Load {loadData.loadNumber ?? 'Unknown'}</h1>
         <Link to="/dispatch/dashboard" className="text-blue-600 hover:underline">
           ← Back to Dispatch
         </Link>
@@ -68,7 +109,7 @@ function LoadDetailPage() {
       {/* Status Badge */}
       <div className="flex items-center gap-4">
         <span className="px-3 py-1 bg-gray-200 rounded-full text-sm font-medium">
-          {loadData.status}
+          {loadData.status ?? 'Unknown'}
         </span>
         {loadData.driverId && (
           <span className="text-sm text-gray-600">Driver: {loadData.driverId}</span>
@@ -117,14 +158,15 @@ function LoadDetailPage() {
       {/* Stops Section */}
       <div className="bg-white p-4 rounded-lg shadow">
         <h2 className="text-lg font-semibold mb-4">Stops</h2>
-        {loadData.stops && loadData.stops.length > 0 ? (
+        {loadData.stops && Array.isArray(loadData.stops) && loadData.stops.length > 0 ? (
           <div className="space-y-3">
-            {loadData.stops.map((stop: any, idx: number) => (
+            {loadData.stops.map((stop: StopData, idx: number) => (
               <div key={idx} className="border-l-4 border-blue-500 pl-4">
-                <div className="font-medium">{stop.type}</div>
-                <div className="text-sm text-gray-600">{stop.address}</div>
+                <div className="font-medium">{stop.type ?? 'Unknown'}</div>
+                <div className="text-sm text-gray-600">{stop.address ?? 'Unknown'}</div>
                 <div className="text-xs text-gray-500">
-                  {new Date(stop.scheduledDate).toLocaleDateString()} {stop.scheduledTime}
+                  {stop.scheduledDate ? new Date(stop.scheduledDate).toLocaleDateString() : 'TBD'}{' '}
+                  {stop.scheduledTime ?? ''}
                 </div>
               </div>
             ))}
@@ -147,13 +189,16 @@ function LoadDetailPage() {
           <p>Loading documents...</p>
         ) : documents.length > 0 ? (
           <ul className="space-y-2">
-            {documents.map((doc: any) => (
-              <li key={doc.id} className="flex items-center justify-between">
+            {documents.map((doc: DocumentData) => (
+              <li key={doc.id as string} className="flex items-center justify-between">
                 <span className="text-sm">
-                  {doc.type} - {new Date(doc.createdAt).toLocaleDateString()}
+                  {doc.type ?? 'Unknown'} -{' '}
+                  {doc.createdAt
+                    ? new Date(doc.createdAt as number).toLocaleDateString()
+                    : 'Unknown'}
                 </span>
                 <a
-                  href={doc.url}
+                  href={(doc.url as string) ?? '#'}
                   target="_blank"
                   rel="noreferrer"
                   className="text-blue-600 hover:underline text-sm"
@@ -175,11 +220,13 @@ function LoadDetailPage() {
           <p>Loading events...</p>
         ) : events.length > 0 ? (
           <ul className="space-y-2">
-            {events.map((event: any) => (
-              <li key={event.id} className="text-sm">
-                <span className="font-medium">{event.type}</span>
+            {events.map((event: EventData) => (
+              <li key={event.id as string} className="text-sm">
+                <span className="font-medium">{event.type ?? 'Unknown'}</span>
                 <span className="text-gray-600 ml-2">
-                  {new Date(event.createdAt).toLocaleString()}
+                  {event.createdAt
+                    ? new Date(event.createdAt as number).toLocaleString()
+                    : 'Unknown'}
                 </span>
               </li>
             ))}

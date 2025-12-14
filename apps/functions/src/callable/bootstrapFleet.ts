@@ -43,7 +43,7 @@ export const bootstrapFleet = onCall(async (request) => {
     })
 
     // Prepare user data
-    const userData: any = {
+    const userData: Record<string, unknown> = {
       id: uid,
       fleetId,
       roles,
@@ -77,7 +77,7 @@ export const bootstrapFleet = onCall(async (request) => {
     await userRef.set(userData, { merge: true })
 
     // Set custom claims
-    const customClaims: any = {
+    const customClaims: Record<string, string | string[]> = {
       fleetId,
       roles,
     }

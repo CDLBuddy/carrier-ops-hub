@@ -62,11 +62,11 @@ Rules assume these claims exist:
 {
   id: string;              // Matches Auth uid
   email: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;      // Optional
+  lastName?: string;       // Optional
   fleetId: string;
   roles: Role[];
-  driverId?: string;       // Only if role includes 'driver'
+  isActive: boolean;       // Default true
   createdAt: number;       // Unix timestamp (ms)
   updatedAt: number;
 }
@@ -156,16 +156,17 @@ Rules assume these claims exist:
 
 ```typescript
 {
-  id: string;              // Matches Auth uid (if driver has account)
+  id: string;
   fleetId: string;
+  driverId?: string;       // References user.id if driver has account
   firstName: string;
   lastName: string;
   licenseNumber: string;
   licenseState: string;
-  licenseExpiry: number;   // Unix timestamp (ms)
+  licenseExpiry?: number;  // Unix timestamp (ms), optional
   phoneNumber: string;
-  email?: string;
-  status: 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE';
+  email?: string;          // Optional
+  isActive: boolean;       // Default true
   createdAt: number;
   updatedAt: number;
 }
@@ -185,13 +186,14 @@ Rules assume these claims exist:
 {
   id: string
   fleetId: string
-  vehicleNumber: string
-  vin: string
+  vehicleNumber: string // User-friendly identifier (not unitNumber)
+  vin: string // 17 characters
   year: number
   make: string
   model: string
   licensePlate: string
-  status: 'ACTIVE' | 'MAINTENANCE' | 'OUT_OF_SERVICE'
+  status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'OUT_OF_SERVICE' // Default 'ACTIVE'
+  isActive: boolean // Default true
   createdAt: number
   updatedAt: number
 }

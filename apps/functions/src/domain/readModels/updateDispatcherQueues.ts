@@ -1,7 +1,5 @@
 // carrier-ops-hub/apps/functions/src/domain/readModels/updateDispatcherQueues.ts
 
-import { db } from '../../firebaseAdmin'
-
 // Update dispatcher queue read model
 
 export async function updateDispatcherQueues(loadId: string) {

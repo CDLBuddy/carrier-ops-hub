@@ -2,6 +2,7 @@
   "name": "carrier-ops-hub",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Modern TMS for small trucking carriers",
   "scripts": {
     "dev": "pnpm --filter web dev",

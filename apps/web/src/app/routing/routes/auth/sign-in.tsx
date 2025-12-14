@@ -35,10 +35,10 @@ function SignInPage() {
         navigate({ to: '/auth/bootstrap' })
       } else {
         const landing = getLandingPath(claims.roles)
-        navigate({ to: landing as any })
+        navigate({ to: landing })
       }
-    } catch (err: any) {
-      setError(err.message || 'Authentication failed')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Authentication failed')
     } finally {
       setLoading(false)
     }

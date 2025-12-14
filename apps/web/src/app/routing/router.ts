@@ -8,7 +8,7 @@ export const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
   context: {
-    auth: undefined as any as AuthContextValue,
+    auth: undefined as unknown as AuthContextValue,
   },
 })
 

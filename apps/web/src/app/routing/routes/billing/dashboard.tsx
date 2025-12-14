@@ -6,25 +6,39 @@ import { useDocuments } from '@/features/documents/hooks'
 import { LOAD_STATUS, DOCUMENT_TYPE } from '@coh/shared'
 import { useMemo } from 'react'
 
+interface LoadData {
+  id: string
+  loadNumber?: string
+  status?: string
+  [key: string]: unknown
+}
+
+interface DocumentData {
+  type?: string
+  [key: string]: unknown
+}
+
 export const Route = createFileRoute('/billing/dashboard')({
   component: BillingDashboard,
 })
 
 function BillingDashboard() {
-  const { data: loads = [], isLoading: loadsLoading } = useLoads()
+  const { data: loads = [], isLoading: loadsLoading } = useLoads() as {
+    data: LoadData[]
+    isLoading: boolean
+  }
 
   // Filter delivered loads
-  const deliveredLoads = loads.filter((load: any) => load.status === LOAD_STATUS.DELIVERED)
+  const deliveredLoads = loads.filter((load: LoadData) => load.status === LOAD_STATUS.DELIVERED)
 
   // Group loads by billing readiness
   const { readyLoads, blockedLoads } = useMemo(() => {
-    const ready: any[] = []
-    const blocked: any[] = []
+    const ready: LoadData[] = []
+    const blocked: LoadData[] = []
 
-    deliveredLoads.forEach((load: any) => {
+    deliveredLoads.forEach((load: LoadData) => {
       // Check if load has required documents (will be determined per load)
-      const loadEntry = { ...load, readiness: 'checking' }
-      ready.push(loadEntry) // Temporarily add to ready, will be refined below
+      ready.push(load) // Temporarily add to ready, will be refined below
     })
 
     return { readyLoads: ready, blockedLoads: blocked }
@@ -77,16 +91,16 @@ function BillingDashboard() {
   )
 }
 
-function LoadBillingCard({ load }: { load: any }) {
-  const { data: documents = [] } = useDocuments(load.id)
+function LoadBillingCard({ load }: { load: LoadData }) {
+  const { data: documents = [] } = useDocuments(load.id) as { data: DocumentData[] }
 
-  const hasPOD = documents.some((doc: any) => doc.type === DOCUMENT_TYPE.POD)
+  const hasPOD = documents.some((doc: DocumentData) => doc.type === DOCUMENT_TYPE.POD)
   const hasRateConfirmation = documents.some(
-    (doc: any) => doc.type === DOCUMENT_TYPE.RATE_CONFIRMATION
+    (doc: DocumentData) => doc.type === DOCUMENT_TYPE.RATE_CONFIRMATION
   )
 
   const isActuallyReady = hasPOD && hasRateConfirmation
-  const missingDocs = []
+  const missingDocs: string[] = []
   if (!hasPOD) missingDocs.push('POD')
   if (!hasRateConfirmation) missingDocs.push('Rate Confirmation')
 
@@ -98,7 +112,7 @@ function LoadBillingCard({ load }: { load: any }) {
           params={{ loadId: load.id }}
           className="font-medium text-blue-600 hover:underline"
         >
-          Load {load.loadNumber}
+          Load {load.loadNumber ?? 'Unknown'}
         </Link>
         <span
           className={`px-2 py-1 text-xs rounded ${

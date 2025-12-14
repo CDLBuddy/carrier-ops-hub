@@ -1,0 +1,17 @@
+{
+  "name": "@coh/seed",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "validate": "tsx fixtures.ts"
+  },
+  "dependencies": {
+    "@coh/shared": "workspace:*",
+    "firebase-admin": "^13.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.21.0"
+  }
+}
