@@ -22,7 +22,7 @@ function DriverHomePage() {
   // Find loads assigned to this driver that are active
   const assignedLoads = loads.filter(
     (load: any) =>
-      load.assignedDriverUid === user?.uid &&
+      load.driverId === user?.uid &&
       load.status !== LOAD_STATUS.DELIVERED &&
       load.status !== LOAD_STATUS.CANCELLED
   )

@@ -27,8 +27,8 @@ function LoadDetailPage() {
   const handleAssign = () => {
     if (!selectedDriver || !selectedVehicle) return
     const updates: Partial<LoadData> = {
-      assignedDriverUid: selectedDriver,
-      assignedVehicleId: selectedVehicle,
+      driverId: selectedDriver,
+      vehicleId: selectedVehicle,
       status: LOAD_STATUS.ASSIGNED as any,
     }
     updateLoad(updates)
@@ -70,11 +70,11 @@ function LoadDetailPage() {
         <span className="px-3 py-1 bg-gray-200 rounded-full text-sm font-medium">
           {loadData.status}
         </span>
-        {loadData.assignedDriverUid && (
-          <span className="text-sm text-gray-600">Driver: {loadData.assignedDriverUid}</span>
+        {loadData.driverId && (
+          <span className="text-sm text-gray-600">Driver: {loadData.driverId}</span>
         )}
-        {loadData.assignedVehicleId && (
-          <span className="text-sm text-gray-600">Vehicle: {loadData.assignedVehicleId}</span>
+        {loadData.vehicleId && (
+          <span className="text-sm text-gray-600">Vehicle: {loadData.vehicleId}</span>
         )}
       </div>
 

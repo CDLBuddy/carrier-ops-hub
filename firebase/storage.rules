@@ -25,10 +25,10 @@ service firebase.storage {
              request.resource.contentType == 'application/pdf';
     }
     
-    // All fleet data under /fleets/{fleetId}/...
+    // All fleet data under /fleets/{fleetId}/... - READ ONLY
     match /fleets/{fleetId}/{allPaths=**} {
       allow read: if matchesFleetId(fleetId);
-      allow write: if matchesFleetId(fleetId) && isValidSize();
+      // Write is denied here - use specific paths below
     }
     
     // Load documents with type/size validation
