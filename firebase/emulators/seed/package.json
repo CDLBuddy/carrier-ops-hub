@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "validate": "tsx fixtures.ts"
+    "validate": "tsx fixtures.ts",
+    "seed": "tsx seed.ts"
   },
   "dependencies": {
     "@coh/shared": "workspace:*",

@@ -11,12 +11,12 @@
     "format": "prettier -w ."
   },
   "engines": {
-    "node": "18"
+    "node": "22"
   },
   "dependencies": {
     "@coh/shared": "workspace:*",
     "firebase-admin": "^13.0.1",
-    "firebase-functions": "^6.1.1"
+    "firebase-functions": "^6.3.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

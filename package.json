@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "pnpm --filter web dev",
     "dev:web": "pnpm --filter web dev",
-    "dev:emulators": "pnpm exec firebase --config firebase/firebase.json emulators:start --project dev",
+    "dev:emulators": "pnpm exec firebase --config firebase/firebase.json emulators:start --project carrier-ops-hub",
+    "seed:validate": "pnpm --filter @coh/seed validate",
+    "seed:all": "pnpm --filter @coh/seed validate && pnpm --filter @coh/seed seed",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
