@@ -111,6 +111,7 @@ allow create: if hasFleetId() && request.resource.data.fleetId == request.auth.t
 **Solution:** Removed write permission from wildcard match. Writes now only allowed through specific path matches with content-type validation.
 
 **Diff:**
+
 ```diff
 -// All fleet data under /fleets/{fleetId}/...
 -match /fleets/{fleetId}/{allPaths=**} {
@@ -138,12 +139,14 @@ allow create: if hasFleetId() && request.resource.data.fleetId == request.auth.t
 **Canonical Source:** `packages/shared/src/schemas/load.ts` defines `driverId` and `vehicleId`
 
 **Files Changed:**
+
 1. `apps/web/src/services/repos/loads.repo.ts` - Removed `assignedDriverUid`, `assignedVehicleId` from LoadData interface
 2. `apps/web/src/app/routing/routes/driver/home.tsx` - Changed filter from `assignedDriverUid` to `driverId`
 3. `apps/web/src/app/routing/routes/dispatch/loads.$loadId.tsx` - Changed assignment writes and displays to use `driverId`, `vehicleId`
 4. `firebase/firestore.indexes.json` - Removed duplicate `assignedDriverUid` index, kept canonical `driverId` index
 
 **Diff Summary:**
+
 ```
 apps/web/src/app/routing/routes/dispatch/loads.$loadId.tsx: 6 changes (driverId, vehicleId)
 apps/web/src/app/routing/routes/driver/home.tsx: 1 change (driverId filter)
@@ -158,6 +161,7 @@ firebase/firestore.indexes.json: Removed 9 lines (duplicate assignedDriverUid in
 **Finding:** Driver UI already complies with Firestore rules.
 
 **Evidence:**
+
 - Driver UI (`apps/web/src/app/routing/routes/driver/loads.$loadId.tsx`) only updates `status` field
 - Never writes `stops` array
 - Matches `driverOnlyUpdatingStatus()` rule: `affectedKeys().hasOnly(['status', 'updatedAt'])`
@@ -169,6 +173,7 @@ firebase/firestore.indexes.json: Removed 9 lines (duplicate assignedDriverUid in
 **Finding:** Events and documents create rules already require fleet match.
 
 **Current Rules:**
+
 ```rules
 // Events
 allow create: if hasFleetId() && request.resource.data.fleetId == request.auth.token.fleetId;
@@ -220,6 +225,7 @@ apps/web build: Done in 3.3s (490.31 KB index)
 ## Git Diff Summary
 
 **Files Changed:** 5
+
 - `apps/web/src/app/routing/routes/dispatch/loads.$loadId.tsx` (6 changes)
 - `apps/web/src/app/routing/routes/driver/home.tsx` (1 change)
 - `apps/web/src/services/repos/loads.repo.ts` (2 deletions)
@@ -264,19 +270,20 @@ apps/web build: Done in 3.3s (490.31 KB index)
 ## Deployment Notes
 
 **Firebase Security Rules Changes:**
+
 1. Deploy Storage rules: `firebase deploy --only storage`
 2. Deploy Firestore indexes: `firebase deploy --only firestore:indexes`
 
 **Breaking Changes:**
+
 - ⚠️ Existing data with `assignedDriverUid`/`assignedVehicleId` fields will need migration to `driverId`/`vehicleId`
 - Run a one-time Firestore migration script if production data exists
 
 **Migration Script (if needed):**
+
 ```javascript
 // Run in Firebase Console or Cloud Function
-const loads = await db.collection('loads')
-  .where('assignedDriverUid', '!=', null)
-  .get();
+const loads = await db.collection('loads').where('assignedDriverUid', '!=', null).get()
 
 for (const doc of loads.docs) {
   await doc.ref.update({
@@ -284,7 +291,7 @@ for (const doc of loads.docs) {
     vehicleId: doc.data().assignedVehicleId,
     assignedDriverUid: admin.firestore.FieldValue.delete(),
     assignedVehicleId: admin.firestore.FieldValue.delete(),
-  });
+  })
 }
 ```
 
@@ -295,6 +302,7 @@ for (const doc of loads.docs) {
 **Phase 5.0.1 Status:** ✅ COMPLETE
 
 **P0 Issues Resolved:**
+
 1. ✅ Storage wildcard write bypass (CRITICAL SECURITY)
 2. ✅ Assignment field fork (driverId vs assignedDriverUid)
 3. ✅ Verified driver UI compliance (status-only updates)
