@@ -2,7 +2,7 @@
 
 // Authentication API functions
 
-export async function signIn(email: string, password: string) {
+export async function signIn(_email: string, _password: string) {
     // TODO: Implement sign in with Firebase Auth
     throw new Error('Not implemented');
 }
@@ -12,7 +12,7 @@ export async function signOut() {
     throw new Error('Not implemented');
 }
 
-export async function resetPassword(email: string) {
+export async function resetPassword(_email: string) {
     // TODO: Implement password reset
     throw new Error('Not implemented');
 }

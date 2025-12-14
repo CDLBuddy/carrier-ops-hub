@@ -3,17 +3,18 @@
 // Document repository
 
 export const documentsRepo = {
-    async getByLoadId(loadId: string) {
+    async getByLoadId(_loadId: string) {
         // TODO: Fetch documents for a load
         return [];
     },
 
-    async upload(file: File, loadId: string) {
+    async upload(_file: File, _loadId: string, _fleetId: string) {
         // TODO: Upload document to Storage
+        // Path format: fleets/{fleetId}/loads/{loadId}/docs/{docId}-{filename}
         throw new Error('Not implemented');
     },
 
-    async delete(documentId: string) {
+    async delete(_documentId: string) {
         // TODO: Delete document
         throw new Error('Not implemented');
     },

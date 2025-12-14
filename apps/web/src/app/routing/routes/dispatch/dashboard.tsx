@@ -53,7 +53,7 @@ function DispatchDashboard() {
     await createLoad.mutateAsync({
       customerName: customerName.trim(),
       referenceNumber: referenceNumber.trim(),
-      status: 'AVAILABLE',
+      status: 'UNASSIGNED',
       stops,
     })
 

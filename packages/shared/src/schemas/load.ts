@@ -2,12 +2,15 @@
 
 import { z } from 'zod';
 import { StopSchema } from './stop';
+import { LOAD_STATUS } from '../constants/statuses';
+
+const loadStatusValues = Object.values(LOAD_STATUS) as [string, ...string[]];
 
 export const LoadSchema = z.object({
     id: z.string(),
     fleetId: z.string(),
     loadNumber: z.string(),
-    status: z.enum(['AVAILABLE', 'ASSIGNED', 'IN_TRANSIT', 'DELIVERED', 'INVOICED', 'PAID', 'CANCELLED']),
+    status: z.enum(loadStatusValues),
     driverId: z.string().nullable(),
     vehicleId: z.string().nullable(),
     stops: z.array(StopSchema).min(2),

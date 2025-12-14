@@ -4,22 +4,37 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // TODO: Define proper storage rules in Phase 3
-    
     function isAuthenticated() {
       return request.auth != null;
     }
     
-    // Documents
-    match /documents/{loadId}/{fileName} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+    function hasFleetId() {
+      return isAuthenticated() && request.auth.token.fleetId is string;
     }
     
-    // Driver profile photos
-    match /drivers/{driverId}/photo {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+    function matchesFleetId(fleetId) {
+      return hasFleetId() && request.auth.token.fleetId == fleetId;
+    }
+    
+    function isValidSize() {
+      return request.resource.size < 15 * 1024 * 1024; // 15MB limit
+    }
+    
+    function isValidDocType() {
+      return request.resource.contentType.matches('image/.*') ||
+             request.resource.contentType == 'application/pdf';
+    }
+    
+    // All fleet data under /fleets/{fleetId}/...
+    match /fleets/{fleetId}/{allPaths=**} {
+      allow read: if matchesFleetId(fleetId);
+      allow write: if matchesFleetId(fleetId) && isValidSize();
+    }
+    
+    // Load documents with type/size validation
+    match /fleets/{fleetId}/loads/{loadId}/docs/{fileName} {
+      allow read: if matchesFleetId(fleetId);
+      allow write: if matchesFleetId(fleetId) && isValidSize() && isValidDocType();
     }
     
     // Default deny

@@ -27,7 +27,7 @@ function BootstrapPage() {
   const [selectedRoles, setSelectedRoles] = useState<Role[]>(['owner', 'dispatcher'])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { refreshClaims, claims } = useAuth()
+  const { refreshClaims } = useAuth()
   const navigate = useNavigate()
 
   const toggleRole = (role: Role) => {

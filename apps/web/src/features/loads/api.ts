@@ -7,17 +7,17 @@ export async function fetchLoads() {
     return [];
 }
 
-export async function fetchLoadById(id: string) {
+export async function fetchLoadById(_id: string) {
     // TODO: Implement single load fetch
     throw new Error('Not implemented');
 }
 
-export async function createLoad(data: unknown) {
+export async function createLoad(_data: unknown) {
     // TODO: Implement load creation
     throw new Error('Not implemented');
 }
 
-export async function updateLoad(id: string, data: unknown) {
+export async function updateLoad(_id: string, _data: unknown) {
     // TODO: Implement load update
     throw new Error('Not implemented');
 }

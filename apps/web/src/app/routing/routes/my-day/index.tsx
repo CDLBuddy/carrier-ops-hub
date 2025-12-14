@@ -3,7 +3,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { requireAuth } from '@/app/routing/guards/requireAuth'
 import { useAuth } from '@/app/providers/AuthContext'
-import { ROLE_LABELS } from '@coh/shared'
+import { ROLE_LABELS, type Role } from '@coh/shared'
+import { navConfig } from '@/app/routing/navigation/navConfig'
 
 export const Route = createFileRoute('/my-day/')({
   beforeLoad: ({ context }) => {
@@ -15,19 +16,15 @@ export const Route = createFileRoute('/my-day/')({
 function MyDayPage() {
   const { claims, user } = useAuth()
 
-  const quickLinks = []
-
-  if (claims.roles.includes('dispatcher') || claims.roles.includes('owner')) {
-    quickLinks.push({ to: '/dispatch/dashboard', label: 'Dispatch Dashboard' })
-  }
-
-  if (claims.roles.includes('billing') || claims.roles.includes('owner')) {
-    quickLinks.push({ to: '/billing/dashboard', label: 'Billing Dashboard' })
-  }
-
-  if (claims.roles.includes('driver')) {
-    quickLinks.push({ to: '/driver/home', label: 'Driver Home' })
-  }
+  // Filter navConfig based on user roles
+  const quickLinks = navConfig.filter((item) => {
+    // If no roles specified, show to all authenticated users
+    if (!item.roles || item.roles.length === 0) {
+      return true
+    }
+    // Check if user has any of the required roles
+    return item.roles.some((role: Role) => claims.roles.includes(role))
+  })
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -44,8 +41,8 @@ function MyDayPage() {
         >
           {quickLinks.map((link) => (
             <Link
-              key={link.to}
-              to={link.to}
+              key={link.path}
+              to={link.path}
               style={{
                 padding: '1.5rem',
                 border: '1px solid #e5e7eb',

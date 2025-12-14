@@ -16,6 +16,10 @@
   "devDependencies": {
     "typescript": "^5.7.2",
     "eslint": "^9.17.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
     "prettier": "^3.4.2",
     "turbo": "^2.3.3",
     "firebase-tools": "^13.27.0"

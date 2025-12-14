@@ -8,10 +8,10 @@ export const TimestampSchema = z.object({
 });
 
 export const AddressSchema = z.object({
-    street: z.string(),
-    city: z.string(),
-    state: z.string(),
-    zip: z.string(),
+    street: z.string().default(''),
+    city: z.string().default(''),
+    state: z.string().default(''),
+    zip: z.string().default(''),
     country: z.string().default('US'),
 });
 

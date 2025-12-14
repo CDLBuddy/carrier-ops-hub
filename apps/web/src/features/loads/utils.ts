@@ -2,12 +2,12 @@
 
 // Load-related utility functions
 
-export function formatLoadStatus(status: string): string {
+export function formatLoadStatus(_status: string): string {
     // TODO: Format status for display
-    return status;
+    return _status;
 }
 
-export function calculateLoadRevenue(load: unknown): number {
+export function calculateLoadRevenue(_load: unknown): number {
     // TODO: Calculate total revenue for load
     return 0;
 }

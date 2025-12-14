@@ -5,7 +5,6 @@ import { AddressSchema } from './common';
 
 export const StopSchema = z.object({
     id: z.string(),
-    loadId: z.string(),
     type: z.enum(['PICKUP', 'DELIVERY']),
     sequence: z.number().int().min(0),
     address: AddressSchema,

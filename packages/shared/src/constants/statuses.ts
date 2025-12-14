@@ -1,12 +1,12 @@
 // carrier-ops-hub/packages/shared/src/constants/statuses.ts
 
 export const LOAD_STATUS = {
-    PENDING: 'PENDING',
+    UNASSIGNED: 'UNASSIGNED',
     ASSIGNED: 'ASSIGNED',
-    IN_TRANSIT: 'IN_TRANSIT',
     AT_PICKUP: 'AT_PICKUP',
+    IN_TRANSIT: 'IN_TRANSIT',
     AT_DELIVERY: 'AT_DELIVERY',
-    COMPLETED: 'COMPLETED',
+    DELIVERED: 'DELIVERED',
     CANCELLED: 'CANCELLED',
 } as const;
 

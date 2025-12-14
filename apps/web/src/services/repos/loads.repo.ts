@@ -1,6 +1,6 @@
 // carrier-ops-hub/apps/web/src/services/repos/loads.repo.ts
 
-import { collection, query, where, orderBy, limit, getDocs, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '@/firebase/firestore';
 import { COLLECTIONS } from '@coh/shared';
 

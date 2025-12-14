@@ -2,7 +2,7 @@
 
 // Selectors for load card display
 
-export function selectLoadCardData(load: unknown) {
+export function selectLoadCardData(_load: unknown) {
     // TODO: Transform load data for card display
     return {
         id: 'load-id',
