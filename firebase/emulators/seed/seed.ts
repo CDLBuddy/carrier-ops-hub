@@ -2,7 +2,7 @@
 
 import admin from 'firebase-admin'
 import { randomUUID } from 'crypto'
-import { fixtures, testUserClaims } from './fixtures.js'
+import { fixtures, testUserClaims } from './fixtures/index.js'
 
 // Initialize Firebase Admin with emulator settings
 process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080'
@@ -247,13 +247,18 @@ export async function seedEmulators() {
             // Upload to Storage and get real emulator URL
             const { url, size } = await uploadToStorage(doc)
 
-            // Update doc with real URL and size
-            const docData = {
-                ...doc,
-                url,
-                size,
-                updatedAt: Date.now(),
-            }
+            // Only update url/size if Storage emulator is configured
+            const docData = storageEmulatorHost
+                ? {
+                    ...doc,
+                    url,
+                    size,
+                    updatedAt: Date.now(),
+                }
+                : {
+                    ...doc,
+                    updatedAt: Date.now(),
+                }
 
             await db.collection('documents').doc(doc.id).set(docData)
 

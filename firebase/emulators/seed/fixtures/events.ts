@@ -1,0 +1,370 @@
+// carrier-ops-hub/firebase/emulators/seed/fixtures/events.ts
+
+import { EventSchema, type Event, EVENT_TYPE, LOAD_STATUS } from '@coh/shared'
+import { now } from './time.js'
+
+export const events: Event[] = [
+    {
+        id: 'event-1',
+        fleetId: 'fleet-acme',
+        loadId: 'load-unassigned',
+        type: EVENT_TYPE.LOAD_CREATED,
+        actorUid: 'dispatcher-1',
+        createdAt: now - 86400000 * 3,
+        payload: {
+            loadNumber: 'LOAD-2025-001',
+        },
+    },
+    {
+        id: 'event-2',
+        fleetId: 'fleet-acme',
+        loadId: 'load-assigned',
+        type: EVENT_TYPE.LOAD_CREATED,
+        actorUid: 'dispatcher-1',
+        createdAt: now - 86400000 * 2,
+        payload: {
+            loadNumber: 'LOAD-2025-002',
+        },
+    },
+    {
+        id: 'event-3',
+        fleetId: 'fleet-acme',
+        loadId: 'load-assigned',
+        type: EVENT_TYPE.LOAD_ASSIGNED,
+        actorUid: 'dispatcher-1',
+        createdAt: now - 86400000 * 1,
+        payload: {
+            driverId: 'driver-1',
+            vehicleId: 'vehicle-1',
+        },
+    },
+    {
+        id: 'event-4',
+        fleetId: 'fleet-acme',
+        loadId: 'load-in-transit',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'driver-2',
+        createdAt: now - 7200000, // 2 hours ago
+        payload: {
+            previousStatus: LOAD_STATUS.AT_PICKUP,
+            newStatus: LOAD_STATUS.IN_TRANSIT,
+        },
+    },
+    {
+        id: 'event-5',
+        fleetId: 'fleet-acme',
+        loadId: 'load-at-pickup',
+        type: EVENT_TYPE.LOAD_CREATED,
+        actorUid: 'dispatcher-1',
+        createdAt: now - 86400000 * 1,
+        payload: {
+            loadNumber: 'LOAD-2025-004',
+        },
+    },
+    {
+        id: 'event-6',
+        fleetId: 'fleet-acme',
+        loadId: 'load-at-pickup',
+        type: EVENT_TYPE.LOAD_ASSIGNED,
+        actorUid: 'dispatcher-1',
+        createdAt: now - 86400000 * 1 + 3600000,
+        payload: {
+            driverId: 'driver-1',
+            vehicleId: 'vehicle-1',
+        },
+    },
+    {
+        id: 'event-7',
+        fleetId: 'fleet-acme',
+        loadId: 'load-at-pickup',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'driver-1',
+        createdAt: now - 3600000,
+        payload: {
+            previousStatus: LOAD_STATUS.ASSIGNED,
+            newStatus: LOAD_STATUS.AT_PICKUP,
+        },
+    },
+    {
+        id: 'event-8',
+        fleetId: 'fleet-acme',
+        loadId: 'load-at-delivery',
+        type: EVENT_TYPE.LOAD_CREATED,
+        actorUid: 'dispatcher-1',
+        createdAt: now - 86400000 * 5,
+        payload: {
+            loadNumber: 'LOAD-2025-005',
+        },
+    },
+    {
+        id: 'event-9',
+        fleetId: 'fleet-acme',
+        loadId: 'load-at-delivery',
+        type: EVENT_TYPE.LOAD_ASSIGNED,
+        actorUid: 'dispatcher-1',
+        createdAt: now - 86400000 * 5 + 3600000,
+        payload: {
+            driverId: 'driver-2',
+            vehicleId: 'vehicle-2',
+        },
+    },
+    {
+        id: 'event-10',
+        fleetId: 'fleet-acme',
+        loadId: 'load-at-delivery',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'driver-2',
+        createdAt: now - 86400000 * 2,
+        payload: {
+            previousStatus: LOAD_STATUS.ASSIGNED,
+            newStatus: LOAD_STATUS.AT_PICKUP,
+        },
+    },
+    {
+        id: 'event-11',
+        fleetId: 'fleet-acme',
+        loadId: 'load-at-delivery',
+        type: EVENT_TYPE.STOP_COMPLETED,
+        actorUid: 'driver-2',
+        createdAt: now - 86400000 * 2 + 1800000,
+        payload: {
+            stopId: 'stop-5-pickup',
+        },
+    },
+    {
+        id: 'event-12',
+        fleetId: 'fleet-acme',
+        loadId: 'load-at-delivery',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'driver-2',
+        createdAt: now - 86400000 * 2 + 1800000,
+        payload: {
+            previousStatus: LOAD_STATUS.AT_PICKUP,
+            newStatus: LOAD_STATUS.IN_TRANSIT,
+        },
+    },
+    {
+        id: 'event-13',
+        fleetId: 'fleet-acme',
+        loadId: 'load-at-delivery',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'driver-2',
+        createdAt: now - 7200000,
+        payload: {
+            previousStatus: LOAD_STATUS.IN_TRANSIT,
+            newStatus: LOAD_STATUS.AT_DELIVERY,
+        },
+    },
+    {
+        id: 'event-14',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-ready',
+        type: EVENT_TYPE.LOAD_CREATED,
+        actorUid: 'dispatcher-1',
+        createdAt: now - 86400000 * 10,
+        payload: {
+            loadNumber: 'LOAD-2025-006',
+        },
+    },
+    {
+        id: 'event-15',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-ready',
+        type: EVENT_TYPE.LOAD_ASSIGNED,
+        actorUid: 'dispatcher-1',
+        createdAt: now - 86400000 * 10 + 3600000,
+        payload: {
+            driverId: 'driver-1',
+            vehicleId: 'vehicle-1',
+        },
+    },
+    {
+        id: 'event-16',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-ready',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'driver-1',
+        createdAt: now - 86400000 * 7,
+        payload: {
+            previousStatus: LOAD_STATUS.ASSIGNED,
+            newStatus: LOAD_STATUS.AT_PICKUP,
+        },
+    },
+    {
+        id: 'event-17',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-ready',
+        type: EVENT_TYPE.STOP_COMPLETED,
+        actorUid: 'driver-1',
+        createdAt: now - 86400000 * 7 + 900000,
+        payload: {
+            stopId: 'stop-6-pickup',
+        },
+    },
+    {
+        id: 'event-18',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-ready',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'driver-1',
+        createdAt: now - 86400000 * 7 + 900000,
+        payload: {
+            previousStatus: LOAD_STATUS.AT_PICKUP,
+            newStatus: LOAD_STATUS.IN_TRANSIT,
+        },
+    },
+    {
+        id: 'event-19',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-ready',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'driver-1',
+        createdAt: now - 86400000 * 5,
+        payload: {
+            previousStatus: LOAD_STATUS.IN_TRANSIT,
+            newStatus: LOAD_STATUS.AT_DELIVERY,
+        },
+    },
+    {
+        id: 'event-20',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-ready',
+        type: EVENT_TYPE.STOP_COMPLETED,
+        actorUid: 'driver-1',
+        createdAt: now - 86400000 * 5 + 1200000,
+        payload: {
+            stopId: 'stop-6-delivery',
+        },
+    },
+    {
+        id: 'event-21',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-ready',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'driver-1',
+        createdAt: now - 86400000 * 5 + 1200000,
+        payload: {
+            previousStatus: LOAD_STATUS.AT_DELIVERY,
+            newStatus: LOAD_STATUS.DELIVERED,
+        },
+    },
+    {
+        id: 'event-22',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-blocked',
+        type: EVENT_TYPE.LOAD_CREATED,
+        actorUid: 'dispatcher-1',
+        createdAt: now - 86400000 * 12,
+        payload: {
+            loadNumber: 'LOAD-2025-007',
+        },
+    },
+    {
+        id: 'event-23',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-blocked',
+        type: EVENT_TYPE.LOAD_ASSIGNED,
+        actorUid: 'dispatcher-1',
+        createdAt: now - 86400000 * 12 + 3600000,
+        payload: {
+            driverId: 'driver-2',
+            vehicleId: 'vehicle-2',
+        },
+    },
+    {
+        id: 'event-24',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-blocked',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'driver-2',
+        createdAt: now - 86400000 * 8,
+        payload: {
+            previousStatus: LOAD_STATUS.ASSIGNED,
+            newStatus: LOAD_STATUS.AT_PICKUP,
+        },
+    },
+    {
+        id: 'event-25',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-blocked',
+        type: EVENT_TYPE.STOP_COMPLETED,
+        actorUid: 'driver-2',
+        createdAt: now - 86400000 * 8,
+        payload: {
+            stopId: 'stop-7-pickup',
+        },
+    },
+    {
+        id: 'event-26',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-blocked',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'driver-2',
+        createdAt: now - 86400000 * 8,
+        payload: {
+            previousStatus: LOAD_STATUS.AT_PICKUP,
+            newStatus: LOAD_STATUS.IN_TRANSIT,
+        },
+    },
+    {
+        id: 'event-27',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-blocked',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'driver-2',
+        createdAt: now - 86400000 * 6,
+        payload: {
+            previousStatus: LOAD_STATUS.IN_TRANSIT,
+            newStatus: LOAD_STATUS.AT_DELIVERY,
+        },
+    },
+    {
+        id: 'event-28',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-blocked',
+        type: EVENT_TYPE.STOP_COMPLETED,
+        actorUid: 'driver-2',
+        createdAt: now - 86400000 * 6 + 3600000,
+        payload: {
+            stopId: 'stop-7-delivery',
+        },
+    },
+    {
+        id: 'event-29',
+        fleetId: 'fleet-acme',
+        loadId: 'load-delivered-blocked',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'driver-2',
+        createdAt: now - 86400000 * 6 + 3600000,
+        payload: {
+            previousStatus: LOAD_STATUS.AT_DELIVERY,
+            newStatus: LOAD_STATUS.DELIVERED,
+        },
+    },
+    {
+        id: 'event-30',
+        fleetId: 'fleet-acme',
+        loadId: 'load-cancelled',
+        type: EVENT_TYPE.LOAD_CREATED,
+        actorUid: 'dispatcher-1',
+        createdAt: now - 86400000 * 6,
+        payload: {
+            loadNumber: 'LOAD-2025-008',
+        },
+    },
+    {
+        id: 'event-31',
+        fleetId: 'fleet-acme',
+        loadId: 'load-cancelled',
+        type: EVENT_TYPE.STATUS_CHANGED,
+        actorUid: 'dispatcher-1',
+        createdAt: now - 86400000 * 1,
+        payload: {
+            previousStatus: LOAD_STATUS.UNASSIGNED,
+            newStatus: LOAD_STATUS.CANCELLED,
+        },
+    },
+]
+
+// Validate all events
+events.forEach((event) => EventSchema.parse(event))
