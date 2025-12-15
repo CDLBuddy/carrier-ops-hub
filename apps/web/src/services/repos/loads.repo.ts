@@ -17,6 +17,7 @@ import { db } from '@/firebase/firestore'
 import { COLLECTIONS, LOAD_STATUS, EVENT_TYPE, type Stop } from '@coh/shared'
 import { withDocId, assertFleetMatch } from './repoUtils'
 import type { DriverLoadAction } from '@/features/loads/lifecycle'
+import type { DispatcherLoadAction, AssignmentData } from '@/features/loads/dispatcherLifecycle'
 
 export interface LoadData {
   id: string // Added by withDocId
@@ -244,6 +245,88 @@ export const loadsRepo = {
       id: loadId,
       status: transition.nextStatus,
       stops: updatedStops,
+      updatedAt: now,
+    }
+  },
+
+  async applyDispatcherAction({
+    fleetId,
+    loadId,
+    action,
+    actorUid,
+    actorRole,
+    assignmentData,
+    reason,
+  }: {
+    fleetId: string
+    loadId: string
+    action: DispatcherLoadAction
+    actorUid: string
+    actorRole: string | string[] | undefined
+    assignmentData?: AssignmentData
+    reason?: string
+  }) {
+    if (!actorUid) {
+      throw new Error('actorUid is required')
+    }
+
+    // Assert dispatcher role permission
+    const { assertDispatcherActionAllowed } = await import(
+      '@/features/loads/dispatcherLifecycle.js'
+    )
+    assertDispatcherActionAllowed(actorRole)
+
+    // Fetch load document
+    const loadRef = doc(db, COLLECTIONS.LOADS, loadId)
+    const snapshot = await getDoc(loadRef)
+
+    if (!snapshot.exists()) {
+      throw new Error('Load not found')
+    }
+
+    const load = withDocId<LoadData>(snapshot)
+
+    // Assert fleet match
+    assertFleetMatch({
+      expectedFleetId: fleetId,
+      actualFleetId: load.fleetId,
+      entity: 'load',
+      id: loadId,
+    })
+
+    // Compute transition using dispatcher lifecycle module
+    const { computeDispatcherTransition } = await import(
+      '@/features/loads/dispatcherLifecycle.js'
+    )
+    const now = Date.now()
+    const transition = computeDispatcherTransition(load, action, assignmentData, reason)
+
+    // Prepare batch write
+    const batch = writeBatch(db)
+
+    // Update load with computed transition
+    batch.update(loadRef, {
+      ...transition.updates,
+      updatedAt: now,
+    })
+
+    // Create event
+    const eventsRef = collection(db, COLLECTIONS.EVENTS)
+    const eventRef = doc(eventsRef)
+    batch.set(eventRef, {
+      fleetId,
+      loadId,
+      type: transition.eventType,
+      actorUid,
+      createdAt: now,
+      payload: transition.eventPayload,
+    })
+
+    await batch.commit()
+
+    return {
+      id: loadId,
+      ...transition.updates,
       updatedAt: now,
     }
   },

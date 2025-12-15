@@ -1,7 +1,7 @@
 // carrier-ops-hub/apps/web/src/app/routing/routes/dispatch/loads.$loadId.tsx
 
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useLoad, useAssignLoad, type LoadData } from '@/features/loads/hooks'
+import { useLoad, useDispatcherAction, type LoadData } from '@/features/loads/hooks'
 import { useDocuments, useUploadDocument } from '@/features/documents/hooks'
 import { useEvents } from '@/features/events/hooks'
 import { useDrivers } from '@/features/drivers/hooks'
@@ -34,12 +34,13 @@ function LoadDetailPage() {
   const { data: events = [], isLoading: eventsLoading } = useEvents(loadId)
   const { data: drivers = [], isLoading: driversLoading } = useDrivers()
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles()
-  const { mutate: assignLoad } = useAssignLoad(loadId)
+  const { mutate: performAction, isPending } = useDispatcherAction(loadId)
   const { mutate: uploadDocument } = useUploadDocument(loadId)
 
   const [selectedDriver, setSelectedDriver] = useState('')
   const [selectedVehicle, setSelectedVehicle] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
 
   // Preselect dropdowns when load data changes
   useEffect(() => {
@@ -55,7 +56,24 @@ function LoadDetailPage() {
 
   const handleAssign = () => {
     if (!selectedDriver || !selectedVehicle) return
-    assignLoad({ driverId: selectedDriver, vehicleId: selectedVehicle })
+    const isReassign =
+      load?.status === LOAD_STATUS.ASSIGNED || load?.status === LOAD_STATUS.AT_PICKUP
+    performAction({
+      action: isReassign ? 'REASSIGN' : 'ASSIGN',
+      assignmentData: { driverId: selectedDriver, vehicleId: selectedVehicle },
+    })
+  }
+
+  const handleUnassign = () => {
+    performAction({ action: 'UNASSIGN' })
+  }
+
+  const handleCancel = () => {
+    performAction({ action: 'CANCEL', reason: cancelReason || 'No reason provided' })
+  }
+
+  const handleReactivate = () => {
+    performAction({ action: 'REACTIVATE' })
   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,10 +131,15 @@ function LoadDetailPage() {
       </div>
 
       {/* Assignment Section */}
-      {(loadData.status === LOAD_STATUS.UNASSIGNED || loadData.status === LOAD_STATUS.ASSIGNED) && (
+      {(loadData.status === LOAD_STATUS.DRAFT ||
+        loadData.status === LOAD_STATUS.UNASSIGNED ||
+        loadData.status === LOAD_STATUS.ASSIGNED ||
+        loadData.status === LOAD_STATUS.AT_PICKUP) && (
         <div className="bg-white p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-4">
-            {loadData.status === LOAD_STATUS.ASSIGNED ? 'Reassign Load' : 'Assign Load'}
+            {loadData.status === LOAD_STATUS.ASSIGNED || loadData.status === LOAD_STATUS.AT_PICKUP
+              ? 'Reassign or Unassign Load'
+              : 'Assign Load'}
           </h2>
           {driversLoading || vehiclesLoading ? (
             <p className="text-gray-600">Loading drivers and vehicles...</p>
@@ -131,7 +154,8 @@ function LoadDetailPage() {
                     <select
                       value={selectedDriver}
                       onChange={(e) => setSelectedDriver(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded"
+                      disabled={isPending}
+                      className="w-full px-3 py-2 border border-gray-300 rounded disabled:bg-gray-100"
                     >
                       <option value="">Select driver...</option>
                       {drivers.map((driver) => (
@@ -155,7 +179,8 @@ function LoadDetailPage() {
                     <select
                       value={selectedVehicle}
                       onChange={(e) => setSelectedVehicle(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded"
+                      disabled={isPending}
+                      className="w-full px-3 py-2 border border-gray-300 rounded disabled:bg-gray-100"
                     >
                       <option value="">Select vehicle...</option>
                       {vehicles.map((vehicle) => (
@@ -174,14 +199,69 @@ function LoadDetailPage() {
                   )}
                 </div>
               </div>
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={handleAssign}
+                  disabled={!selectedDriver || !selectedVehicle || isPending}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+                >
+                  {isPending
+                    ? 'Processing...'
+                    : loadData.status === LOAD_STATUS.ASSIGNED ||
+                        loadData.status === LOAD_STATUS.AT_PICKUP
+                      ? 'Reassign Load'
+                      : 'Assign Load'}
+                </button>
+                {(loadData.status === LOAD_STATUS.ASSIGNED ||
+                  loadData.status === LOAD_STATUS.AT_PICKUP) && (
+                  <button
+                    onClick={handleUnassign}
+                    disabled={isPending}
+                    className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-gray-400"
+                  >
+                    {isPending ? 'Processing...' : 'Unassign Load'}
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Cancel/Reactivate Section */}
+      {(loadData.status === LOAD_STATUS.DRAFT ||
+        loadData.status === LOAD_STATUS.UNASSIGNED ||
+        loadData.status === LOAD_STATUS.ASSIGNED ||
+        loadData.status === LOAD_STATUS.CANCELLED) && (
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-4">Load Management</h2>
+          {loadData.status !== LOAD_STATUS.CANCELLED ? (
+            <>
+              <label className="block text-sm font-medium mb-2">Cancel Reason (optional)</label>
+              <input
+                type="text"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="e.g., Customer cancelled, equipment unavailable"
+                disabled={isPending}
+                className="w-full px-3 py-2 border border-gray-300 rounded mb-4 disabled:bg-gray-100"
+              />
               <button
-                onClick={handleAssign}
-                disabled={!selectedDriver || !selectedVehicle}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+                onClick={handleCancel}
+                disabled={isPending}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-400"
               >
-                {loadData.status === LOAD_STATUS.ASSIGNED ? 'Reassign Load' : 'Assign Load'}
+                {isPending ? 'Processing...' : 'Cancel Load'}
               </button>
             </>
+          ) : (
+            <button
+              onClick={handleReactivate}
+              disabled={isPending}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400"
+            >
+              {isPending ? 'Processing...' : 'Reactivate Load'}
+            </button>
           )}
         </div>
       )}

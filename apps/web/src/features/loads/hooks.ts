@@ -5,6 +5,7 @@ import { loadsRepo, type LoadData } from '@/services/repos/loads.repo'
 import { queryKeys } from '@/data/queryKeys'
 import { useAuth } from '@/app/providers/AuthContext'
 import type { DriverLoadAction } from './lifecycle'
+import type { DispatcherLoadAction, AssignmentData } from './dispatcherLifecycle'
 
 export type { LoadData }
 
@@ -100,6 +101,40 @@ export function useDriverAction(loadId: string) {
         action,
         actorUid: user?.uid || '',
         actorDriverId: driverId || '',
+      }),
+    onSuccess: () => {
+      if (fleetId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.loads.detail(fleetId, loadId) })
+        queryClient.invalidateQueries({ queryKey: queryKeys.loads.byFleet(fleetId) })
+        queryClient.invalidateQueries({ queryKey: queryKeys.events.byLoad(fleetId, loadId) })
+      }
+    },
+  })
+}
+
+export function useDispatcherAction(loadId: string) {
+  const { claims, user } = useAuth()
+  const queryClient = useQueryClient()
+  const fleetId = claims.fleetId
+
+  return useMutation({
+    mutationFn: ({
+      action,
+      assignmentData,
+      reason,
+    }: {
+      action: DispatcherLoadAction
+      assignmentData?: AssignmentData
+      reason?: string
+    }) =>
+      loadsRepo.applyDispatcherAction({
+        fleetId: fleetId || '',
+        loadId,
+        action,
+        actorUid: user?.uid || '',
+        actorRole: claims.roles,
+        assignmentData,
+        reason,
       }),
     onSuccess: () => {
       if (fleetId) {
