@@ -26,6 +26,7 @@ Successfully implemented Firebase Storage emulator seeding with the following ca
 ### 1. `firebase/emulators/seed/seed.ts`
 
 **Changes:**
+
 - Added `randomUUID` import from `crypto` for token generation
 - Configured Admin SDK with `storageBucket` parameter
 - Added Storage emulator host check with clear warning message
@@ -41,6 +42,7 @@ Successfully implemented Firebase Storage emulator seeding with the following ca
 ### 2. `docs/truth-sweep.md`
 
 **Changes:**
+
 - Added new section: "Storage Seeding (Phase 5.0.4)"
 - Documented file generation capabilities
 - Documented required environment variable format
@@ -60,18 +62,18 @@ index 72c3a49..7d736db 100644
 +++ b/firebase/emulators/seed/seed.ts
 @@ -1,16 +1,168 @@
  // carrier-ops-hub/firebase/emulators/seed/seed.ts
- 
+
  import admin from 'firebase-admin'
 +import { randomUUID } from 'crypto'
  import { fixtures, testUserClaims } from './fixtures.js'
- 
+
  // Initialize Firebase Admin with emulator settings
  process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080'
  process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099'
- 
+
 -admin.initializeApp({ projectId: 'carrier-ops-hub' })
 +admin.initializeApp({ projectId: 'carrier-ops-hub', storageBucket: 'carrier-ops-hub-test.appspot.com' })
- 
+
  const db = admin.firestore()
  const auth = admin.auth()
 +const storage = admin.storage()
@@ -115,12 +117,12 @@ index 72c3a49..7d736db 100644
 +endobj
 +xref
 +0 6
-+0000000000 65535 f 
-+0000000009 00000 n 
-+0000000058 00000 n 
-+0000000115 00000 n 
-+0000000214 00000 n 
-+0000000304 00000 n 
++0000000000 65535 f
++0000000009 00000 n
++0000000058 00000 n
++0000000115 00000 n
++0000000214 00000 n
++0000000304 00000 n
 +trailer
 +<< /Size 6 /Root 1 0 R >>
 +startxref
@@ -224,13 +226,13 @@ index 72c3a49..7d736db 100644
 +
 +    return { url, size: fileBuffer.length }
 +}
- 
+
  /**
   * Seed Firebase emulators with validated test data
 @@ -88,13 +240,40 @@ export async function seedEmulators() {
              console.log(`   ✓ Created event: ${event.type} for load ${event.loadId}`)
          }
- 
+
 -        // 8. Create Documents
 +        // 8. Create Documents (with Storage uploads)
          console.log('\n📄 Creating documents...')
@@ -258,7 +260,7 @@ index 72c3a49..7d736db 100644
 +                console.log(`   ✓ Created document: ${doc.fileName} (${doc.type}) - Storage upload skipped`)
 +            }
          }
- 
+
 +        // Print sample URL for verification
 +        if (storageEmulatorHost && fixtures.documents.length > 0) {
 +            const sampleDoc = fixtures.documents[0]
@@ -287,15 +289,15 @@ index 72c3a49..7d736db 100644
 
 ### docs/truth-sweep.md
 
-```diff
+````diff
 diff --git a/docs/truth-sweep.md b/docs/truth-sweep.md
 index c9f4376..20be323 100644
 --- a/docs/truth-sweep.md
 +++ b/docs/truth-sweep.md
 @@ -309,6 +309,34 @@ export const DocumentSchema = z.object({
- 
+
  ---
- 
+
 +## Storage Seeding (Phase 5.0.4)
 +
 +**Seed script:** `firebase/emulators/seed/seed.ts`
@@ -325,9 +327,9 @@ index c9f4376..20be323 100644
 +---
 +
  ## Known drift / mismatches (must fix next phase)
- 
+
  This list is intentionally short and **evidence-backed**.
-```
+````
 
 ---
 
@@ -340,6 +342,7 @@ pnpm seed:validate
 ```
 
 **Output:**
+
 ```
 ✅ Seed fixtures validated successfully
    - 2 fleets
@@ -362,6 +365,7 @@ pnpm seed:all
 ```
 
 **Output:**
+
 ```
 ✅ Seed fixtures validated successfully
    - 2 fleets
@@ -418,7 +422,7 @@ pnpm seed:all
 📄 Creating documents...
    ✓ Created document: BOL-LOAD-2025-002.pdf (BOL) - uploaded to Storage
    ✓ Created document: RateConfirmation-LOAD-003.pdf (RATE_CONFIRMATION) - uploaded to Storage
-   
+
    📋 Sample URL: http://127.0.0.1:9199/v0/b/carrier-ops-hub-test.appspot.com/o/fleets%2Ffleet-acme%2Floads%2Fload-assigned%2Fdocs%2Fdoc-1-BOL-LOAD-2025-002.pdf?alt=media&token=dd91b336-322f-4ec4-9166-5fda84a8e115
    📂 Storage path: fleets/fleet-acme/loads/load-assigned/docs/doc-1-BOL-LOAD-2025-002.pdf
 
@@ -450,11 +454,13 @@ http://127.0.0.1:9199/v0/b/carrier-ops-hub-test.appspot.com/o/fleets%2Ffleet-acm
 ```
 
 **Storage Path:**
+
 ```
 fleets/fleet-acme/loads/load-assigned/docs/doc-1-BOL-LOAD-2025-002.pdf
 ```
 
 ### Files Uploaded
+
 - ✅ 2 PDF files generated and uploaded
 - ✅ Each file has unique download token
 - ✅ URLs follow emulator format specification
@@ -467,6 +473,7 @@ fleets/fleet-acme/loads/load-assigned/docs/doc-1-BOL-LOAD-2025-002.pdf
 ### fixtures.ts Review
 
 All document fixtures remain compliant with `DocumentSchema`:
+
 - ✅ All required fields present: `id`, `fleetId`, `loadId`, `type`, `fileName`, `storagePath`, `url`, `contentType`, `size`, `uploadedBy`, `createdAt`, `updatedAt`
 - ✅ Optional fields used correctly: `notes`, `amount`
 - ✅ No forbidden fields added
@@ -495,11 +502,13 @@ All document fixtures remain compliant with `DocumentSchema`:
 ## Environment Variable Format
 
 **Correct:**
+
 ```bash
 FIREBASE_STORAGE_EMULATOR_HOST=127.0.0.1:9199
 ```
 
 **Incorrect:**
+
 ```bash
 # ❌ Don't include protocol
 FIREBASE_STORAGE_EMULATOR_HOST=http://127.0.0.1:9199
@@ -522,22 +531,26 @@ FIREBASE_STORAGE_EMULATOR_HOST=http://127.0.0.1:9199
 Chose to generate minimal valid file buffers rather than use external libraries:
 
 **PDF Generation:**
+
 - Creates minimal PDF 1.4 document
 - Single page with text showing filename
 - Opens in all standard PDF viewers
 - No dependencies required
 
 **PNG Generation:**
+
 - 1x1 transparent pixel
 - Minimal valid PNG structure
 - ~67 bytes
 
 **JPEG Generation:**
+
 - 1x1 red pixel
 - Minimal valid JPEG structure
 - ~160 bytes
 
 **Benefits:**
+
 - Zero external dependencies
 - Fast generation
 - Small file sizes for testing
@@ -546,6 +559,7 @@ Chose to generate minimal valid file buffers rather than use external libraries:
 ### URL Format
 
 Emulator URLs follow Firebase Storage REST API format:
+
 ```
 http://{host}/v0/b/{bucket}/o/{encodedPath}?alt=media&token={uuid}
 ```
@@ -558,6 +572,7 @@ http://{host}/v0/b/{bucket}/o/{encodedPath}?alt=media&token={uuid}
 ### Idempotency
 
 The seed operation is idempotent:
+
 - Files are overwritten at same storage path
 - Firestore documents are overwritten with `set()`
 - New tokens generated on each run
