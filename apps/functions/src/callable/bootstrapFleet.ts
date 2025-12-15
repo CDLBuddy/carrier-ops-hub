@@ -2,7 +2,7 @@
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { adminDb, adminAuth } from '../firebaseAdmin'
-import { COLLECTIONS } from '@coh/shared'
+import { COLLECTIONS, ROLES, UserSchema, DriverSchema, type Role } from '@coh/shared'
 
 export const bootstrapFleet = onCall(async (request) => {
   // Reject if not authenticated
@@ -28,7 +28,19 @@ export const bootstrapFleet = onCall(async (request) => {
   }
 
   const uid = request.auth.uid
+  const email = request.auth.token.email
   const now = Date.now()
+
+  // Validate email
+  if (!email || typeof email !== 'string') {
+    throw new HttpsError('invalid-argument', 'User email is required')
+  }
+
+  // Validate roles against ROLES constant
+  const invalidRoles = roles.filter((r: string) => !ROLES.includes(r as Role))
+  if (invalidRoles.length > 0) {
+    throw new HttpsError('invalid-argument', `Invalid roles: ${invalidRoles.join(', ')}`)
+  }
 
   try {
     // Create fleet document
@@ -45,8 +57,10 @@ export const bootstrapFleet = onCall(async (request) => {
     // Prepare user data
     const userData: Record<string, unknown> = {
       id: uid,
+      email,
       fleetId,
       roles,
+      isActive: true,
       createdAt: now,
       updatedAt: now,
     }
@@ -56,21 +70,30 @@ export const bootstrapFleet = onCall(async (request) => {
     if (roles.includes('driver')) {
       driverId = uid // Simple mapping: driverId = uid
       const driverRef = adminDb.collection(COLLECTIONS.DRIVERS).doc(driverId)
-      await driverRef.set({
+
+      const driverData = {
         id: driverId,
         fleetId,
-        userId: uid,
+        driverId: uid,
         firstName: '',
         lastName: '',
         licenseNumber: '',
         licenseState: '',
+        licenseExpiryDate: now,
         phoneNumber: '',
-        isActive: true,
+        status: 'ACTIVE' as const,
         createdAt: now,
         updatedAt: now,
-      })
+      }
+
+      // Validate with DriverSchema
+      DriverSchema.parse(driverData)
+      await driverRef.set(driverData)
       userData.driverId = driverId
     }
+
+    // Validate user data with UserSchema
+    UserSchema.parse(userData)
 
     // Create/update user document
     const userRef = adminDb.collection(COLLECTIONS.USERS).doc(uid)

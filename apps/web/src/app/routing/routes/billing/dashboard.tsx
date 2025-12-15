@@ -5,6 +5,8 @@ import { useLoads } from '@/features/loads/hooks'
 import { useDocuments } from '@/features/documents/hooks'
 import { LOAD_STATUS, DOCUMENT_TYPE } from '@coh/shared'
 import { useMemo } from 'react'
+import { requireAuth } from '@/app/routing/guards/requireAuth'
+import { requireRole } from '@/app/routing/guards/requireRole'
 
 interface LoadData {
   id: string
@@ -19,6 +21,10 @@ interface DocumentData {
 }
 
 export const Route = createFileRoute('/billing/dashboard')({
+  beforeLoad: ({ context }) => {
+    requireAuth(context.auth)
+    requireRole(context.auth, ['billing', 'owner'])
+  },
   component: BillingDashboard,
 })
 

@@ -6,14 +6,16 @@ import { useDocuments, useUploadDocument } from '@/features/documents/hooks'
 import { useEvents } from '@/features/events/hooks'
 import { useState } from 'react'
 import { useAuth } from '@/app/providers/AuthContext'
-import { LOAD_STATUS, DOCUMENT_TYPE, EVENT_TYPE, type EventType } from '@coh/shared'
+import { LOAD_STATUS, DOCUMENT_TYPE, EVENT_TYPE, type EventType, type Address } from '@coh/shared'
 import { eventsRepo } from '@/services/repos/events.repo'
+import { requireAuth } from '@/app/routing/guards/requireAuth'
+import { requireRole } from '@/app/routing/guards/requireRole'
 
 interface StopData {
   type?: string
-  address?: string
-  scheduledDate?: number
-  scheduledTime?: string
+  address?: Address
+  scheduledTime?: number
+  actualTime?: number | null
   [key: string]: unknown
 }
 
@@ -43,6 +45,10 @@ interface EventData {
 }
 
 export const Route = createFileRoute('/driver/loads/$loadId')({
+  beforeLoad: ({ context }) => {
+    requireAuth(context.auth)
+    requireRole(context.auth, ['driver'])
+  },
   component: DriverLoadDetailPage,
 })
 
@@ -167,10 +173,15 @@ function DriverLoadDetailPage() {
             {loadData.stops.map((stop: StopData, idx: number) => (
               <div key={idx} className="border-l-4 border-blue-500 pl-4">
                 <div className="font-medium">{stop.type ?? 'Unknown'}</div>
-                <div className="text-sm text-gray-600">{stop.address ?? 'Unknown'}</div>
+                <div className="text-sm text-gray-600">
+                  {stop.address
+                    ? `${stop.address.street}, ${stop.address.city}, ${stop.address.state} ${stop.address.zip}`
+                    : 'Address unknown'}
+                </div>
                 <div className="text-xs text-gray-500">
-                  {stop.scheduledDate ? new Date(stop.scheduledDate).toLocaleDateString() : 'TBD'}{' '}
-                  {stop.scheduledTime ?? ''}
+                  {stop.scheduledTime
+                    ? new Date(stop.scheduledTime).toLocaleString()
+                    : 'Scheduled time TBD'}
                 </div>
               </div>
             ))}

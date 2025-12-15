@@ -5,10 +5,10 @@ import { requireAuth } from '@/app/routing/guards/requireAuth'
 import { requireRole } from '@/app/routing/guards/requireRole'
 import { useLoads } from '@/features/loads/hooks'
 import { useAuth } from '@/app/providers/AuthContext'
-import { LOAD_STATUS } from '@coh/shared'
+import { LOAD_STATUS, type Address } from '@coh/shared'
 
 interface StopData {
-  address?: string
+  address?: Address
   [key: string]: unknown
 }
 
@@ -93,7 +93,9 @@ function DriverHomePage() {
               currentLoad.stops.length > 0 && (
                 <div style={{ marginBottom: '0.5rem' }}>
                   <span style={{ fontWeight: '600' }}>Next Stop: </span>
-                  {currentLoad.stops[0]?.address ?? 'Unknown'}
+                  {currentLoad.stops[0]?.address
+                    ? `${currentLoad.stops[0].address.street}, ${currentLoad.stops[0].address.city}, ${currentLoad.stops[0].address.state} ${currentLoad.stops[0].address.zip}`
+                    : 'Address unknown'}
                 </div>
               )}
           </div>

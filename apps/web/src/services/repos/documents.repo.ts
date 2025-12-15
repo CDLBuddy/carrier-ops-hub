@@ -50,6 +50,7 @@ export const documentsRepo = {
       fleetId,
       loadId,
       type: docType,
+      fileName: file.name,
       storagePath,
       url,
       contentType: file.type,
@@ -57,8 +58,8 @@ export const documentsRepo = {
       uploadedBy: actorUid,
       createdAt: now,
       updatedAt: now,
-      ...(notes && { notes }),
-      ...(amount && { amount }),
+      ...(notes !== undefined && { notes }),
+      ...(amount !== undefined && { amount }),
     }
 
     await setDoc(docRef, document)

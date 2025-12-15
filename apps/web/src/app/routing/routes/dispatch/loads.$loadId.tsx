@@ -5,13 +5,15 @@ import { useLoad, useUpdateLoad } from '@/features/loads/hooks'
 import { useDocuments, useUploadDocument } from '@/features/documents/hooks'
 import { useEvents } from '@/features/events/hooks'
 import { useState } from 'react'
-import { LOAD_STATUS, DOCUMENT_TYPE } from '@coh/shared'
+import { LOAD_STATUS, DOCUMENT_TYPE, type Address } from '@coh/shared'
+import { requireAuth } from '@/app/routing/guards/requireAuth'
+import { requireRole } from '@/app/routing/guards/requireRole'
 
 interface StopData {
   type?: string
-  address?: string
-  scheduledDate?: number
-  scheduledTime?: string
+  address?: Address
+  scheduledTime?: number
+  actualTime?: number | null
   [key: string]: unknown
 }
 
@@ -41,6 +43,10 @@ interface EventData {
 }
 
 export const Route = createFileRoute('/dispatch/loads/$loadId')({
+  beforeLoad: ({ context }) => {
+    requireAuth(context.auth)
+    requireRole(context.auth, ['dispatcher', 'owner'])
+  },
   component: LoadDetailPage,
 })
 
@@ -163,10 +169,15 @@ function LoadDetailPage() {
             {loadData.stops.map((stop: StopData, idx: number) => (
               <div key={idx} className="border-l-4 border-blue-500 pl-4">
                 <div className="font-medium">{stop.type ?? 'Unknown'}</div>
-                <div className="text-sm text-gray-600">{stop.address ?? 'Unknown'}</div>
+                <div className="text-sm text-gray-600">
+                  {stop.address
+                    ? `${stop.address.street}, ${stop.address.city}, ${stop.address.state} ${stop.address.zip}`
+                    : 'Address unknown'}
+                </div>
                 <div className="text-xs text-gray-500">
-                  {stop.scheduledDate ? new Date(stop.scheduledDate).toLocaleDateString() : 'TBD'}{' '}
-                  {stop.scheduledTime ?? ''}
+                  {stop.scheduledTime
+                    ? new Date(stop.scheduledTime).toLocaleString()
+                    : 'Scheduled time TBD'}
                 </div>
               </div>
             ))}
