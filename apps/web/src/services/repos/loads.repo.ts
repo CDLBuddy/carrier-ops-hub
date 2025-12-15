@@ -14,7 +14,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from '@/firebase/firestore'
-import { COLLECTIONS, LOAD_STATUS, EVENT_TYPE } from '@coh/shared'
+import { COLLECTIONS, LOAD_STATUS, EVENT_TYPE, type Stop } from '@coh/shared'
 import { withDocId, assertFleetMatch } from './repoUtils'
 import type { DriverLoadAction } from '@/features/loads/lifecycle'
 
@@ -25,7 +25,7 @@ export interface LoadData {
   status: string
   customerName?: string
   referenceNumber?: string
-  stops: Array<Record<string, unknown>>
+  stops: Stop[]
   driverId?: string | null
   vehicleId?: string | null
   rateCents?: number

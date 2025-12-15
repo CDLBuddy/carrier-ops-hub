@@ -40,7 +40,7 @@ function DispatchDashboard() {
     const stops = [
       {
         id: `stop-${Date.now()}-1`,
-        type: 'PICKUP',
+        type: 'PICKUP' as const,
         sequence: 0,
         address: { street: '', city: '', state: '', zip: '', country: 'US' },
         scheduledTime: Date.now(),
@@ -51,7 +51,7 @@ function DispatchDashboard() {
       },
       {
         id: `stop-${Date.now()}-2`,
-        type: 'DELIVERY',
+        type: 'DELIVERY' as const,
         sequence: 1,
         address: { street: '', city: '', state: '', zip: '', country: 'US' },
         scheduledTime: Date.now() + 86400000, // +1 day

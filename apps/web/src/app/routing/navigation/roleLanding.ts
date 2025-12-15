@@ -4,7 +4,7 @@ import type { Role } from '@coh/shared'
 
 /**
  * Get the landing path for a user based on their roles.
- * Priority order:
+ * Pgggg'griority order:
  * 1. driver-only → /driver/home
  * 2. dispatcher → /dispatch/dashboard
  * 3. owner → /owner/dashboard
