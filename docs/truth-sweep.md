@@ -309,6 +309,34 @@ export const DocumentSchema = z.object({
 
 ---
 
+## Storage Seeding (Phase 5.0.4)
+
+**Seed script:** `firebase/emulators/seed/seed.ts`
+
+The seed script now uploads actual files to the Firebase Storage emulator for each document fixture:
+
+- **File generation:** Creates minimal valid PDF, PNG, or JPEG buffers based on `contentType`
+- **Storage path:** Uploads to the exact `storagePath` from fixture
+- **Emulator URLs:** Generates working emulator URLs with download tokens
+- **Firestore sync:** Updates document records with real URLs and actual file sizes
+- **Idempotent:** Safe to run multiple times (overwrites existing files/docs)
+
+**Required environment variable:**
+
+```bash
+FIREBASE_STORAGE_EMULATOR_HOST=127.0.0.1:9199
+```
+
+**Note:** Must be `host:port` format (no `http://` protocol). If not set, Storage uploads are skipped with a warning.
+
+**Example emulator URL format:**
+
+```
+http://127.0.0.1:9199/v0/b/<bucket>/o/<encoded-path>?alt=media&token=<uuid>
+```
+
+---
+
 ## Known drift / mismatches (must fix next phase)
 
 This list is intentionally short and **evidence-backed**.
