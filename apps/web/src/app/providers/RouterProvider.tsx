@@ -3,8 +3,14 @@
 import { RouterProvider as TanStackRouterProvider } from '@tanstack/react-router'
 import { router } from '@/app/routing/router'
 import { useAuth } from './AuthContext'
+import { ConnectionBanner } from '@/ui/ConnectionBanner'
 
 export function RouterProvider() {
   const auth = useAuth()
-  return <TanStackRouterProvider router={router} context={{ auth }} />
+  return (
+    <>
+      <ConnectionBanner />
+      <TanStackRouterProvider router={router} context={{ auth }} />
+    </>
+  )
 }

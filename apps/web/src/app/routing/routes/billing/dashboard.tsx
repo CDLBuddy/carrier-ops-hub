@@ -1,7 +1,7 @@
 // carrier-ops-hub/apps/web/src/app/routing/routes/billing/dashboard.tsx
 
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useLoads, type LoadData } from '@/features/loads/hooks'
+import { useLoadsRealtime, type LoadData } from '@/features/loads/hooks'
 import { useDocuments, type DocumentData } from '@/features/documents/hooks'
 import { LOAD_STATUS, DOCUMENT_TYPE } from '@coh/shared'
 import { useMemo } from 'react'
@@ -17,7 +17,7 @@ export const Route = createFileRoute('/billing/dashboard')({
 })
 
 function BillingDashboard() {
-  const { data: loads = [], isLoading: loadsLoading } = useLoads()
+  const { data: loads = [], isLoading: loadsLoading } = useLoadsRealtime(100) // Fetch up to 100 loads
 
   // Filter delivered loads
   const deliveredLoads = loads.filter((load) => load.status === LOAD_STATUS.DELIVERED)

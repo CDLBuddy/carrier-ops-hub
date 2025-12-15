@@ -33,6 +33,8 @@ export interface LoadData {
   vehicleId?: string | null
   rateCents?: number
   notes?: string
+  createdAt?: number
+  updatedAt?: number
 }
 
 export const loadsRepo = {

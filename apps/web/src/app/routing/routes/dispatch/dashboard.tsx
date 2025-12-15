@@ -4,16 +4,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { requireAuth } from '@/app/routing/guards/requireAuth'
 import { requireRole } from '@/app/routing/guards/requireRole'
-import { useLoads, useCreateLoad } from '@/features/loads/hooks'
-
-interface LoadData {
-  id: string
-  loadNumber?: string
-  status?: string
-  customerName?: string
-  updatedAt?: number
-  [key: string]: unknown
-}
+import { useLoadsRealtime, useCreateLoad } from '@/features/loads/hooks'
 
 export const Route = createFileRoute('/dispatch/dashboard')({
   beforeLoad: ({ context }) => {
@@ -24,10 +15,7 @@ export const Route = createFileRoute('/dispatch/dashboard')({
 })
 
 function DispatchDashboard() {
-  const { data: loads, isLoading } = useLoads() as {
-    data: LoadData[] | undefined
-    isLoading: boolean
-  }
+  const { data: loads, isLoading } = useLoadsRealtime(50) // Fetch up to 50 loads
   const createLoad = useCreateLoad()
   const [showForm, setShowForm] = useState(false)
   const [customerName, setCustomerName] = useState('')
@@ -193,7 +181,7 @@ function DispatchDashboard() {
 
         {!isLoading && loads && loads.length > 0 && (
           <div>
-            {loads.map((load: LoadData) => (
+            {loads.map((load) => (
               <Link
                 key={load.id}
                 to="/dispatch/loads/$loadId"

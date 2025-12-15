@@ -1,9 +1,13 @@
 // carrier-ops-hub/apps/web/src/app/routing/routes/dispatch/loads.$loadId.tsx
 
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useLoad, useDispatcherAction, type LoadData } from '@/features/loads/hooks'
+import {
+  useLoadRealtime,
+  useEventsRealtime,
+  useDispatcherAction,
+  type LoadData,
+} from '@/features/loads/hooks'
 import { useDocuments, useUploadDocument } from '@/features/documents/hooks'
-import { useEvents } from '@/features/events/hooks'
 import { useDrivers } from '@/features/drivers/hooks'
 import { useVehicles } from '@/features/vehicles/hooks'
 import { useState, useMemo, useEffect } from 'react'
@@ -29,9 +33,9 @@ export const Route = createFileRoute('/dispatch/loads/$loadId')({
 
 function LoadDetailPage() {
   const { loadId } = Route.useParams()
-  const { data: load, isLoading: loadLoading } = useLoad(loadId)
+  const { data: load, isLoading: loadLoading } = useLoadRealtime(loadId)
   const { data: documents = [], isLoading: docsLoading } = useDocuments(loadId)
-  const { data: events = [], isLoading: eventsLoading } = useEvents(loadId)
+  const { data: events = [], isLoading: eventsLoading } = useEventsRealtime(loadId)
   const { data: drivers = [], isLoading: driversLoading } = useDrivers()
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles()
   const { mutate: performAction, isPending } = useDispatcherAction(loadId)

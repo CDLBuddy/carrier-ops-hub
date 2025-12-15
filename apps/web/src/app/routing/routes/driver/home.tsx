@@ -3,22 +3,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { requireAuth } from '@/app/routing/guards/requireAuth'
 import { requireRole } from '@/app/routing/guards/requireRole'
-import { useLoads } from '@/features/loads/hooks'
+import { useLoadsRealtime, type LoadData } from '@/features/loads/hooks'
 import { useAuth } from '@/app/providers/AuthContext'
-import { LOAD_STATUS, type Address } from '@coh/shared'
-
-interface StopData {
-  address?: Address
-  [key: string]: unknown
-}
-
-interface LoadData {
-  id: string
-  loadNumber?: string
-  status?: string
-  stops?: StopData[]
-  [key: string]: unknown
-}
+import { LOAD_STATUS } from '@coh/shared'
 
 export const Route = createFileRoute('/driver/home')({
   beforeLoad: ({ context }) => {
@@ -30,17 +17,17 @@ export const Route = createFileRoute('/driver/home')({
 
 function DriverHomePage() {
   const { claims } = useAuth()
-  const { data, isLoading } = useLoads() as { data: LoadData[] | undefined; isLoading: boolean }
+  const { data, isLoading } = useLoadsRealtime(20) // Fetch up to 20 loads
 
   // Find loads assigned to this driver that are active
   const assignedLoads = (data || []).filter(
-    (load: LoadData) =>
+    (load) =>
       load.driverId === claims?.driverId &&
       load.status !== LOAD_STATUS.DELIVERED &&
       load.status !== LOAD_STATUS.CANCELLED
-  ) as LoadData[]
+  )
 
-  const currentLoad: LoadData | undefined = assignedLoads[0] // Most recent assigned load
+  const currentLoad = assignedLoads[0] // Most recent assigned load
 
   return (
     <div style={{ padding: '2rem' }}>

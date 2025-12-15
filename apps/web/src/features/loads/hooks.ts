@@ -4,10 +4,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { loadsRepo, type LoadData } from '@/services/repos/loads.repo'
 import { queryKeys } from '@/data/queryKeys'
 import { useAuth } from '@/app/providers/AuthContext'
+import { computeDriverTransition } from './lifecycle'
+import { computeDispatcherTransition } from './dispatcherLifecycle'
 import type { DriverLoadAction } from './lifecycle'
 import type { DispatcherLoadAction, AssignmentData } from './dispatcherLifecycle'
 
 export type { LoadData }
+
+// Re-export real-time hooks
+export {
+  useLoadRealtime,
+  useLoadsRealtime,
+  useEventsRealtime,
+  useConnectionState,
+  useFirestoreConnectionState,
+} from './realtimeHooks'
 
 export function useLoads() {
   const { claims } = useAuth()
@@ -94,17 +105,60 @@ export function useDriverAction(loadId: string) {
   const driverId = claims.driverId
 
   return useMutation({
-    mutationFn: (action: DriverLoadAction) =>
-      loadsRepo.applyDriverAction({
-        fleetId: fleetId || '',
-        loadId,
-        action,
-        actorUid: user?.uid || '',
-        actorDriverId: driverId || '',
-      }),
+    mutationFn: async (action: DriverLoadAction) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: queryKeys.loads.detail(fleetId || '', loadId) })
+
+      // Snapshot previous value
+      const previousLoad = queryClient.getQueryData<LoadData>(queryKeys.loads.detail(fleetId || '', loadId))
+
+      // Optimistically update
+      if (previousLoad) {
+        const transition = computeDriverTransition(previousLoad, action, Date.now())
+
+        // Apply stop updates if any
+        const updatedStops = previousLoad.stops?.map((stop, index) => {
+          const stopUpdate = transition.stopUpdates.find((u) => u.index === index)
+          if (stopUpdate) {
+            return {
+              ...stop,
+              actualTime: stopUpdate.actualTime,
+              isCompleted: stopUpdate.isCompleted,
+              updatedAt: stopUpdate.updatedAt,
+            }
+          }
+          return stop
+        })
+
+        queryClient.setQueryData<LoadData>(queryKeys.loads.detail(fleetId || '', loadId), {
+          ...previousLoad,
+          status: transition.nextStatus,
+          stops: updatedStops || previousLoad.stops,
+          updatedAt: Date.now(),
+        })
+      }
+
+      try {
+        // Perform mutation
+        await loadsRepo.applyDriverAction({
+          fleetId: fleetId || '',
+          loadId,
+          action,
+          actorUid: user?.uid || '',
+          actorDriverId: driverId || '',
+        })
+
+        // Refetch to get server state
+        await queryClient.invalidateQueries({ queryKey: queryKeys.loads.detail(fleetId || '', loadId) })
+      } catch (error) {
+        // Rollback on error
+        queryClient.setQueryData<LoadData>(queryKeys.loads.detail(fleetId || '', loadId), previousLoad)
+        throw error
+      }
+    },
     onSuccess: () => {
+      // Invalidate related queries
       if (fleetId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.loads.detail(fleetId, loadId) })
         queryClient.invalidateQueries({ queryKey: queryKeys.loads.byFleet(fleetId) })
         queryClient.invalidateQueries({ queryKey: queryKeys.events.byLoad(fleetId, loadId) })
       }
@@ -118,7 +172,7 @@ export function useDispatcherAction(loadId: string) {
   const fleetId = claims.fleetId
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       action,
       assignmentData,
       reason,
@@ -126,19 +180,54 @@ export function useDispatcherAction(loadId: string) {
       action: DispatcherLoadAction
       assignmentData?: AssignmentData
       reason?: string
-    }) =>
-      loadsRepo.applyDispatcherAction({
-        fleetId: fleetId || '',
-        loadId,
-        action,
-        actorUid: user?.uid || '',
-        actorRole: claims.roles,
-        assignmentData,
-        reason,
-      }),
+    }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: queryKeys.loads.detail(fleetId || '', loadId) })
+
+      // Snapshot previous value
+      const previousLoad = queryClient.getQueryData<LoadData>(
+        queryKeys.loads.detail(fleetId || '', loadId)
+      )
+
+      // Optimistically update
+      if (previousLoad) {
+        const transition = computeDispatcherTransition(previousLoad, action, assignmentData)
+
+        const updates: Partial<LoadData> = {
+          status: transition.nextStatus,
+          updatedAt: Date.now(),
+          ...transition.updates,
+        }
+
+        queryClient.setQueryData<LoadData>(queryKeys.loads.detail(fleetId || '', loadId), {
+          ...previousLoad,
+          ...updates,
+        })
+      }
+
+      try {
+        // Perform mutation
+        await loadsRepo.applyDispatcherAction({
+          fleetId: fleetId || '',
+          loadId,
+          action,
+          actorUid: user?.uid || '',
+          actorRole: claims.roles,
+          assignmentData,
+          reason,
+        })
+
+        // Refetch to get server state
+        await queryClient.invalidateQueries({ queryKey: queryKeys.loads.detail(fleetId || '', loadId) })
+      } catch (error) {
+        // Rollback on error
+        queryClient.setQueryData<LoadData>(queryKeys.loads.detail(fleetId || '', loadId), previousLoad)
+        throw error
+      }
+    },
     onSuccess: () => {
+      // Invalidate related queries
       if (fleetId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.loads.detail(fleetId, loadId) })
         queryClient.invalidateQueries({ queryKey: queryKeys.loads.byFleet(fleetId) })
         queryClient.invalidateQueries({ queryKey: queryKeys.events.byLoad(fleetId, loadId) })
       }

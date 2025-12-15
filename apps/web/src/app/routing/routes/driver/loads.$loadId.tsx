@@ -1,9 +1,13 @@
 // carrier-ops-hub/apps/web/src/app/routing/routes/driver/loads.$loadId.tsx
 
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useLoad, useDriverAction, type LoadData } from '@/features/loads/hooks'
+import {
+  useLoadRealtime,
+  useEventsRealtime,
+  useDriverAction,
+  type LoadData,
+} from '@/features/loads/hooks'
 import { useDocuments, useUploadDocument } from '@/features/documents/hooks'
-import { useEvents } from '@/features/events/hooks'
 import { useState } from 'react'
 import { LOAD_STATUS, DOCUMENT_TYPE, type Address } from '@coh/shared'
 import { requireAuth } from '@/app/routing/guards/requireAuth'
@@ -27,9 +31,9 @@ export const Route = createFileRoute('/driver/loads/$loadId')({
 
 function DriverLoadDetailPage() {
   const { loadId } = Route.useParams()
-  const { data: load, isLoading: loadLoading } = useLoad(loadId)
+  const { data: load, isLoading: loadLoading } = useLoadRealtime(loadId)
   const { data: documents = [], isLoading: docsLoading } = useDocuments(loadId)
-  const { data: events = [], isLoading: eventsLoading } = useEvents(loadId)
+  const { data: events = [], isLoading: eventsLoading } = useEventsRealtime(loadId)
   const { mutate: performAction, isPending } = useDriverAction(loadId)
   const { mutate: uploadDocument } = useUploadDocument(loadId)
 
