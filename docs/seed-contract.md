@@ -14,28 +14,34 @@ This document defines the canonical data shape for all Firestore collections, St
 
 ## Auth Claims Contract
 
-### Required Claims (All Users)
+### Claims Shape
 
 ```typescript
 interface AuthClaims {
-  fleetId: string // Fleet membership (REQUIRED)
-  roles: Role[] // User roles array (REQUIRED, lowercase)
-  driverId?: string // Driver ID (REQUIRED for role='driver', MUST === uid)
+  fleetId?: string // Fleet membership (required for tenant-data access; may be absent pre-bootstrap)
+  roles: Role[] // User roles array (required)
+  driverId?: string // Driver document id (used for driver identity linking)
 }
 ```
 
 ### Role Values (from `packages/shared/src/constants/roles.ts`)
 
 ```typescript
-type Role = 'owner' | 'dispatcher' | 'driver' | 'billing' | 'safety' | 'maintenance'
+type Role =
+  | 'owner'
+  | 'dispatcher'
+  | 'fleet_manager'
+  | 'maintenance_manager'
+  | 'billing'
+  | 'driver'
 ```
 
 ### Identity Mapping Rules
 
 1. **User UID → Firestore Doc:** Auth `user.uid` MUST match Firestore `users/{uid}` document ID
-2. **Driver Identity:** For users with `role='driver'`, the `driverId` claim MUST equal `uid`
+2. **Driver Identity (current bootstrap behavior):** In emulator/dev bootstrap, driver users are created with `driverId = uid`.
    - ✅ Correct: `uid='abc123'` → `claims.driverId='abc123'`
-   - ❌ Wrong: `uid='abc123'` → `claims.driverId='driver-xyz'` (needless indirection)
+  - Evidence: `apps/functions/src/callable/bootstrapFleet.ts` sets `driverId = uid` and assigns `userData.driverId = driverId`.
 3. **Fleet Scope:** All Firestore queries MUST filter by `fleetId` from claims
 
 ### Firestore Rules Assumptions
@@ -78,16 +84,16 @@ Rules assume these claims exist:
 
 ### Collection: `fleets`
 
-**Schema:** `packages/shared/src/schemas/fleet.ts` (if exists, else inferred)
+**Schema:** No shared Zod schema found under `packages/shared/src/schemas/`.
 
-**Required Fields:**
+**Observed write shape (bootstrap):**
+
+Evidence: `apps/functions/src/callable/bootstrapFleet.ts` writes:
 
 ```typescript
 {
   id: string;
   name: string;
-  dotNumber?: string;      // DOT number (nullable)
-  mcNumber?: string;       // MC number (nullable)
   createdAt: number;
   updatedAt: number;
 }
@@ -123,16 +129,25 @@ Rules assume these claims exist:
 
 ```typescript
 {
-  type: 'PICKUP' | 'DELIVERY'
-  address: string
-  city: string
-  state: string
-  zip: string
-  scheduledDate: number // Unix timestamp (ms)
-  scheduledTime: string // "09:00" format
-  isCompleted: boolean
+  id: string;
+  type: 'PICKUP' | 'DELIVERY';
+  sequence: number;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zip: string;
+    country: string;
+  };
+  scheduledTime: number;
+  actualTime: number | null;
+  isCompleted: boolean;
+  createdAt: number;
+  updatedAt: number;
 }
 ```
+
+**Canonical source:** `packages/shared/src/schemas/stop.ts` (and `packages/shared/src/schemas/common.ts` for `AddressSchema`).
 
 **Validation:** `LoadSchema.parse(loadData)`
 
@@ -166,7 +181,7 @@ Rules assume these claims exist:
   licenseExpiry?: number;  // Unix timestamp (ms), optional
   phoneNumber: string;
   email?: string;          // Optional
-  isActive: boolean;       // Default true
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'TERMINATED';
   createdAt: number;
   updatedAt: number;
 }
@@ -193,7 +208,6 @@ Rules assume these claims exist:
   model: string
   licensePlate: string
   status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'OUT_OF_SERVICE' // Default 'ACTIVE'
-  isActive: boolean // Default true
   createdAt: number
   updatedAt: number
 }
@@ -224,7 +238,12 @@ Rules assume these claims exist:
 **EventType Values:** (from `packages/shared/src/constants/events.ts`)
 
 ```typescript
-;'LOAD_CREATED' | 'LOAD_ASSIGNED' | 'STATUS_CHANGED' | 'STOP_COMPLETED' | 'DOCUMENT_UPLOADED'
+type EventType =
+  | 'LOAD_CREATED'
+  | 'LOAD_ASSIGNED'
+  | 'STATUS_CHANGED'
+  | 'STOP_COMPLETED'
+  | 'DOCUMENT_UPLOADED'
 ```
 
 **Validation:** `EventSchema.parse(eventData)`
@@ -268,7 +287,13 @@ Rules assume these claims exist:
 **DocumentType Values:**
 
 ```typescript
-;'BOL' | 'POD' | 'RATE_CONFIRMATION' | 'INVOICE' | 'RECEIPT' | 'OTHER'
+type DocumentType =
+  | 'BOL'
+  | 'POD'
+  | 'RATE_CONFIRMATION'
+  | 'INVOICE'
+  | 'RECEIPT'
+  | 'OTHER'
 ```
 
 **Validation:** `DocumentSchema.parse(docData)`
@@ -349,8 +374,8 @@ Storage rules (`firebase/storage.rules`) enforce:
 
 ```typescript
 {
-  driverId: string | null // Driver UID (matches Auth uid)
-  vehicleId: string | null // Vehicle doc ID
+  driverId: string | null // Driver document ID (currently equals uid for bootstrap-created drivers)
+  vehicleId: string | null // Vehicle document ID
 }
 ```
 
