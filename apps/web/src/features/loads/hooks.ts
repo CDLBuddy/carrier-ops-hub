@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { loadsRepo, type LoadData } from '@/services/repos/loads.repo'
 import { queryKeys } from '@/data/queryKeys'
 import { useAuth } from '@/app/providers/AuthContext'
+import { useToast } from '@/ui/Toast'
+import { getErrorMessage, getDriverActionName, getDispatcherActionName } from '@/lib/errorMessages'
 import { computeDriverTransition } from './lifecycle'
 import { computeDispatcherTransition } from './dispatcherLifecycle'
 import type { DriverLoadAction } from './lifecycle'
@@ -101,6 +103,7 @@ export function useCreateLoad() {
 export function useDriverAction(loadId: string) {
   const { claims, user } = useAuth()
   const queryClient = useQueryClient()
+  const { showToast } = useToast()
   const fleetId = claims.fleetId
   const driverId = claims.driverId
 
@@ -153,22 +156,35 @@ export function useDriverAction(loadId: string) {
       } catch (error) {
         // Rollback on error
         queryClient.setQueryData<LoadData>(queryKeys.loads.detail(fleetId || '', loadId), previousLoad)
+
+        // Show error toast
+        const actionName = getDriverActionName(action)
+        const errorMessage = getErrorMessage(error)
+        showToast('error', `Failed to ${actionName}: ${errorMessage}`)
+
         throw error
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, action) => {
+      // Show success toast
+      const actionName = getDriverActionName(action)
+      showToast('success', `Successfully completed: ${actionName}`)
+
       // Invalidate related queries
       if (fleetId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.loads.byFleet(fleetId) })
         queryClient.invalidateQueries({ queryKey: queryKeys.events.byLoad(fleetId, loadId) })
       }
     },
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   })
 }
 
 export function useDispatcherAction(loadId: string) {
   const { claims, user } = useAuth()
   const queryClient = useQueryClient()
+  const { showToast } = useToast()
   const fleetId = claims.fleetId
 
   return useMutation({
@@ -222,15 +238,27 @@ export function useDispatcherAction(loadId: string) {
       } catch (error) {
         // Rollback on error
         queryClient.setQueryData<LoadData>(queryKeys.loads.detail(fleetId || '', loadId), previousLoad)
+
+        // Show error toast
+        const actionName = getDispatcherActionName(action)
+        const errorMessage = getErrorMessage(error)
+        showToast('error', `Failed to ${actionName}: ${errorMessage}`)
+
         throw error
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      // Show success toast
+      const actionName = getDispatcherActionName(variables.action)
+      showToast('success', `Successfully completed: ${actionName}`)
+
       // Invalidate related queries
       if (fleetId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.loads.byFleet(fleetId) })
         queryClient.invalidateQueries({ queryKey: queryKeys.events.byLoad(fleetId, loadId) })
       }
     },
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   })
 }
