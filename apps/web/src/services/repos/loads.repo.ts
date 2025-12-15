@@ -14,10 +14,12 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from '@/firebase/firestore'
-import { COLLECTIONS, LOAD_STATUS, EVENT_TYPE, type Stop } from '@coh/shared'
+import { COLLECTIONS, LOAD_STATUS, EVENT_TYPE, type Stop, StopSchema } from '@coh/shared'
 import { withDocId, assertFleetMatch } from './repoUtils'
 import type { DriverLoadAction } from '@/features/loads/lifecycle'
 import type { DispatcherLoadAction, AssignmentData } from '@/features/loads/dispatcherLifecycle'
+import { validateInput } from '@/lib/validation'
+import { z } from 'zod'
 
 export interface LoadData {
   id: string // Added by withDocId
@@ -88,6 +90,12 @@ export const loadsRepo = {
   async createLoad({ fleetId, load }: { fleetId: string; load: Partial<LoadData> }) {
     const loadsRef = collection(db, COLLECTIONS.LOADS)
     const now = Date.now()
+
+    // Validate stops array if provided
+    if (load.stops && Array.isArray(load.stops)) {
+      const stopsSchema = z.array(StopSchema).min(2, 'Load must have at least 2 stops')
+      validateInput(stopsSchema, load.stops, 'createLoad stops')
+    }
 
     const loadData = {
       fleetId,

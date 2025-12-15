@@ -1,6 +1,7 @@
 // carrier-ops-hub/apps/web/src/features/loads/dispatcherLifecycle.ts
 
-import { LOAD_STATUS, EVENT_TYPE } from '@coh/shared'
+import { LOAD_STATUS, EVENT_TYPE, DispatcherLoadActionSchema, AssignmentDataSchema, DispatcherTransitionResultSchema } from '@coh/shared'
+import { validateInput, devValidate } from '@/lib/validation'
 import type { LoadData } from './hooks'
 
 export type DispatcherLoadAction =
@@ -44,7 +45,17 @@ export function computeDispatcherTransition(
     assignmentData?: AssignmentData,
     reason?: string
 ): DispatcherTransitionResult {
+    // Validate action input
+    validateInput(DispatcherLoadActionSchema, action, 'computeDispatcherTransition')
+
+    // Validate assignmentData if provided
+    if (assignmentData) {
+        validateInput(AssignmentDataSchema, assignmentData, 'assignmentData')
+    }
+
     const currentStatus = load.status
+
+    let result: DispatcherTransitionResult
 
     switch (action) {
         case 'ASSIGN': {
@@ -57,7 +68,7 @@ export function computeDispatcherTransition(
                 throw new Error('driverId and vehicleId are required for ASSIGN action')
             }
 
-            return {
+            result = {
                 nextStatus: LOAD_STATUS.ASSIGNED,
                 updates: {
                     driverId: assignmentData.driverId,
@@ -72,6 +83,7 @@ export function computeDispatcherTransition(
                     vehicleId: assignmentData.vehicleId,
                 },
             }
+            break
         }
 
         case 'REASSIGN': {
@@ -84,7 +96,7 @@ export function computeDispatcherTransition(
                 throw new Error('driverId and vehicleId are required for REASSIGN action')
             }
 
-            return {
+            result = {
                 nextStatus: LOAD_STATUS.ASSIGNED,
                 updates: {
                     driverId: assignmentData.driverId,
@@ -101,6 +113,7 @@ export function computeDispatcherTransition(
                     vehicleId: assignmentData.vehicleId,
                 },
             }
+            break
         }
 
         case 'UNASSIGN': {
@@ -108,7 +121,7 @@ export function computeDispatcherTransition(
                 throw new Error(`Cannot unassign load from status: ${currentStatus}. Must be ASSIGNED.`)
             }
 
-            return {
+            result = {
                 nextStatus: LOAD_STATUS.UNASSIGNED,
                 updates: {
                     driverId: null,
@@ -123,6 +136,7 @@ export function computeDispatcherTransition(
                     previousVehicleId: load.vehicleId ?? null,
                 },
             }
+            break
         }
 
         case 'CANCEL': {
@@ -136,7 +150,7 @@ export function computeDispatcherTransition(
                 )
             }
 
-            return {
+            result = {
                 nextStatus: LOAD_STATUS.CANCELLED,
                 updates: {
                     status: LOAD_STATUS.CANCELLED,
@@ -148,6 +162,7 @@ export function computeDispatcherTransition(
                     reason: reason || 'No reason provided',
                 },
             }
+            break
         }
 
         case 'REACTIVATE': {
@@ -155,7 +170,7 @@ export function computeDispatcherTransition(
                 throw new Error(`Cannot reactivate load from status: ${currentStatus}. Must be CANCELLED.`)
             }
 
-            return {
+            result = {
                 nextStatus: LOAD_STATUS.DRAFT,
                 updates: {
                     status: LOAD_STATUS.DRAFT,
@@ -166,12 +181,18 @@ export function computeDispatcherTransition(
                     newStatus: LOAD_STATUS.DRAFT,
                 },
             }
+            break
         }
 
         default: {
             throw new Error(`Unknown dispatcher action: ${action}`)
         }
     }
+
+    // Validate result in dev mode
+    devValidate(DispatcherTransitionResultSchema, result, 'computeDispatcherTransition result')
+
+    return result
 }
 
 /**

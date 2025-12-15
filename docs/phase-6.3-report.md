@@ -34,13 +34,13 @@ Phase 6.3 extends the transactional action pattern from Phase 6.2 (driver action
 
 **Transition Rules:**
 
-| Action      | From Status(es)                         | To Status  | Requirements                    | Event Type       |
-| ----------- | --------------------------------------- | ---------- | ------------------------------- | ---------------- |
-| ASSIGN      | DRAFT, UNASSIGNED                       | ASSIGNED   | driverId + vehicleId            | LOAD_ASSIGNED    |
-| REASSIGN    | ASSIGNED, AT_PICKUP                     | ASSIGNED   | driverId + vehicleId            | LOAD_REASSIGNED  |
-| UNASSIGN    | ASSIGNED                                | UNASSIGNED | None                            | LOAD_UNASSIGNED  |
-| CANCEL      | DRAFT, UNASSIGNED, ASSIGNED             | CANCELLED  | reason (optional)               | LOAD_CANCELLED   |
-| REACTIVATE  | CANCELLED                               | DRAFT      | None                            | LOAD_REACTIVATED |
+| Action     | From Status(es)             | To Status  | Requirements         | Event Type       |
+| ---------- | --------------------------- | ---------- | -------------------- | ---------------- |
+| ASSIGN     | DRAFT, UNASSIGNED           | ASSIGNED   | driverId + vehicleId | LOAD_ASSIGNED    |
+| REASSIGN   | ASSIGNED, AT_PICKUP         | ASSIGNED   | driverId + vehicleId | LOAD_REASSIGNED  |
+| UNASSIGN   | ASSIGNED                    | UNASSIGNED | None                 | LOAD_UNASSIGNED  |
+| CANCEL     | DRAFT, UNASSIGNED, ASSIGNED | CANCELLED  | reason (optional)    | LOAD_CANCELLED   |
+| REACTIVATE | CANCELLED                   | DRAFT      | None                 | LOAD_REACTIVATED |
 
 **Role Authorization:**
 
@@ -60,7 +60,7 @@ if (!hasPermission) throw new Error('Forbidden: user role cannot perform dispatc
 
 ```typescript
 export const LOAD_STATUS = {
-  DRAFT: 'DRAFT',         // NEW
+  DRAFT: 'DRAFT', // NEW
   UNASSIGNED: 'UNASSIGNED',
   ASSIGNED: 'ASSIGNED',
   AT_PICKUP: 'AT_PICKUP',
@@ -72,6 +72,7 @@ export const LOAD_STATUS = {
 ```
 
 **DRAFT vs UNASSIGNED:**
+
 - DRAFT: Load just created, no assignment yet, editable
 - UNASSIGNED: Load was previously assigned but unassigned, ready for reassignment
 
@@ -85,9 +86,9 @@ export const LOAD_STATUS = {
 export const EVENT_TYPE = {
   LOAD_CREATED: 'LOAD_CREATED',
   LOAD_ASSIGNED: 'LOAD_ASSIGNED',
-  LOAD_REASSIGNED: 'LOAD_REASSIGNED',   // NEW
-  LOAD_UNASSIGNED: 'LOAD_UNASSIGNED',   // NEW
-  LOAD_CANCELLED: 'LOAD_CANCELLED',     // NEW
+  LOAD_REASSIGNED: 'LOAD_REASSIGNED', // NEW
+  LOAD_UNASSIGNED: 'LOAD_UNASSIGNED', // NEW
+  LOAD_CANCELLED: 'LOAD_CANCELLED', // NEW
   LOAD_REACTIVATED: 'LOAD_REACTIVATED', // NEW
   STATUS_CHANGED: 'STATUS_CHANGED',
   STOP_COMPLETED: 'STOP_COMPLETED',
@@ -183,18 +184,18 @@ export function useDispatcherAction(loadId: string) {
 const { mutate: performAction, isPending } = useDispatcherAction(loadId)
 
 // Assign
-performAction({ 
-  action: 'ASSIGN', 
-  assignmentData: { driverId: '123', vehicleId: '456' } 
+performAction({
+  action: 'ASSIGN',
+  assignmentData: { driverId: '123', vehicleId: '456' },
 })
 
 // Unassign
 performAction({ action: 'UNASSIGN' })
 
 // Cancel with reason
-performAction({ 
-  action: 'CANCEL', 
-  reason: 'Customer cancelled order' 
+performAction({
+  action: 'CANCEL',
+  reason: 'Customer cancelled order',
 })
 ```
 
@@ -253,8 +254,8 @@ const handleUnassign = () => {
   performAction({ action: 'UNASSIGN' })
 }
 
-<button 
-  onClick={handleAssign} 
+<button
+  onClick={handleAssign}
   disabled={!selectedDriver || !selectedVehicle || isPending}
 >
   {isPending ? 'Processing...' : (isReassign ? 'Reassign Load' : 'Assign Load')}
@@ -268,24 +269,26 @@ const handleUnassign = () => {
 **New Cancel/Reactivate Section:**
 
 ```tsx
-{loadData.status !== LOAD_STATUS.CANCELLED ? (
-  <>
-    <input
-      type="text"
-      value={cancelReason}
-      onChange={(e) => setCancelReason(e.target.value)}
-      placeholder="e.g., Customer cancelled, equipment unavailable"
-      disabled={isPending}
-    />
-    <button onClick={handleCancel} disabled={isPending}>
-      {isPending ? 'Processing...' : 'Cancel Load'}
+{
+  loadData.status !== LOAD_STATUS.CANCELLED ? (
+    <>
+      <input
+        type="text"
+        value={cancelReason}
+        onChange={(e) => setCancelReason(e.target.value)}
+        placeholder="e.g., Customer cancelled, equipment unavailable"
+        disabled={isPending}
+      />
+      <button onClick={handleCancel} disabled={isPending}>
+        {isPending ? 'Processing...' : 'Cancel Load'}
+      </button>
+    </>
+  ) : (
+    <button onClick={handleReactivate} disabled={isPending}>
+      {isPending ? 'Processing...' : 'Reactivate Load'}
     </button>
-  </>
-) : (
-  <button onClick={handleReactivate} disabled={isPending}>
-    {isPending ? 'Processing...' : 'Reactivate Load'}
-  </button>
-)}
+  )
+}
 ```
 
 **Result:** UI prevents double-clicks, shows clear loading state, captures cancellation reason.
@@ -323,13 +326,13 @@ UI re-renders with updated data
 
 ## Transition Action Table
 
-| Action      | Status Transition                           | Load Updates                                      | Event Payload                                                                         |
-| ----------- | ------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| ASSIGN      | DRAFT/UNASSIGNED → ASSIGNED                 | driverId, vehicleId, status=ASSIGNED             | `{ previousStatus, newStatus, driverId, vehicleId }`                                  |
-| REASSIGN    | ASSIGNED/AT_PICKUP → ASSIGNED               | driverId, vehicleId, status=ASSIGNED             | `{ previousStatus, newStatus, previousDriverId, previousVehicleId, driverId, vehicleId }` |
-| UNASSIGN    | ASSIGNED → UNASSIGNED                       | driverId=null, vehicleId=null, status=UNASSIGNED | `{ previousStatus, newStatus, previousDriverId, previousVehicleId }`                  |
-| CANCEL      | DRAFT/UNASSIGNED/ASSIGNED → CANCELLED       | status=CANCELLED                                  | `{ previousStatus, newStatus, reason }`                                               |
-| REACTIVATE  | CANCELLED → DRAFT                           | status=DRAFT                                      | `{ previousStatus, newStatus }`                                                       |
+| Action     | Status Transition                     | Load Updates                                     | Event Payload                                                                             |
+| ---------- | ------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| ASSIGN     | DRAFT/UNASSIGNED → ASSIGNED           | driverId, vehicleId, status=ASSIGNED             | `{ previousStatus, newStatus, driverId, vehicleId }`                                      |
+| REASSIGN   | ASSIGNED/AT_PICKUP → ASSIGNED         | driverId, vehicleId, status=ASSIGNED             | `{ previousStatus, newStatus, previousDriverId, previousVehicleId, driverId, vehicleId }` |
+| UNASSIGN   | ASSIGNED → UNASSIGNED                 | driverId=null, vehicleId=null, status=UNASSIGNED | `{ previousStatus, newStatus, previousDriverId, previousVehicleId }`                      |
+| CANCEL     | DRAFT/UNASSIGNED/ASSIGNED → CANCELLED | status=CANCELLED                                 | `{ previousStatus, newStatus, reason }`                                                   |
+| REACTIVATE | CANCELLED → DRAFT                     | status=DRAFT                                     | `{ previousStatus, newStatus }`                                                           |
 
 **REASSIGN Payload Details:**
 
@@ -540,15 +543,15 @@ pnpm build                        # All packages build successfully
 
 ## Comparison: Phase 6.2 vs 6.3
 
-| Aspect                | Phase 6.2 (Driver Actions)           | Phase 6.3 (Dispatcher Actions)          |
-| --------------------- | ------------------------------------ | --------------------------------------- |
-| **Actor**             | Driver                               | Dispatcher/Owner/Admin                  |
-| **Actions**           | ARRIVE_PICKUP, DEPART_PICKUP, etc.   | ASSIGN, REASSIGN, UNASSIGN, CANCEL, etc.|
-| **Authorization**     | Driver ownership (load.driverId)     | Role-based (dispatcher/owner/admin)     |
-| **State Changes**     | Status + stop completion             | Status + assignment data                |
-| **Lifecycle Module**  | lifecycle.ts                         | dispatcherLifecycle.ts                  |
-| **Repo Method**       | applyDriverAction                    | applyDispatcherAction                   |
-| **Hook**              | useDriverAction                      | useDispatcherAction                     |
+| Aspect               | Phase 6.2 (Driver Actions)         | Phase 6.3 (Dispatcher Actions)           |
+| -------------------- | ---------------------------------- | ---------------------------------------- |
+| **Actor**            | Driver                             | Dispatcher/Owner/Admin                   |
+| **Actions**          | ARRIVE_PICKUP, DEPART_PICKUP, etc. | ASSIGN, REASSIGN, UNASSIGN, CANCEL, etc. |
+| **Authorization**    | Driver ownership (load.driverId)   | Role-based (dispatcher/owner/admin)      |
+| **State Changes**    | Status + stop completion           | Status + assignment data                 |
+| **Lifecycle Module** | lifecycle.ts                       | dispatcherLifecycle.ts                   |
+| **Repo Method**      | applyDriverAction                  | applyDispatcherAction                    |
+| **Hook**             | useDriverAction                    | useDispatcherAction                      |
 
 **Common Pattern:**
 

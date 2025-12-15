@@ -1,6 +1,7 @@
 // carrier-ops-hub/apps/web/src/features/loads/lifecycle.ts
 
-import { LOAD_STATUS, EVENT_TYPE, type Stop } from '@coh/shared'
+import { LOAD_STATUS, EVENT_TYPE, type Stop, DriverLoadActionSchema, DriverTransitionResultSchema } from '@coh/shared'
+import { validateInput, devValidate } from '@/lib/validation'
 import type { LoadData } from './hooks'
 
 export type DriverLoadAction = 'ARRIVE_PICKUP' | 'DEPART_PICKUP' | 'ARRIVE_DELIVERY' | 'MARK_DELIVERED'
@@ -27,15 +28,20 @@ export function computeDriverTransition(
     action: DriverLoadAction,
     now: number
 ): TransitionResult {
+    // Validate action input
+    validateInput(DriverLoadActionSchema, action, 'computeDriverTransition')
+
     const currentStatus = load.status
     const stops = load.stops || []
+
+    let result: TransitionResult
 
     switch (action) {
         case 'ARRIVE_PICKUP': {
             if (currentStatus !== LOAD_STATUS.ASSIGNED) {
                 throw new Error(`Cannot arrive at pickup from status: ${currentStatus}`)
             }
-            return {
+            result = {
                 nextStatus: LOAD_STATUS.AT_PICKUP,
                 stopUpdates: [],
                 eventType: EVENT_TYPE.STATUS_CHANGED,
@@ -44,6 +50,7 @@ export function computeDriverTransition(
                     newStatus: LOAD_STATUS.AT_PICKUP,
                 },
             }
+            break
         }
 
         case 'DEPART_PICKUP': {
@@ -57,7 +64,7 @@ export function computeDriverTransition(
             }
             const pickupStop = stops[pickupIndex] as Stop
 
-            return {
+            result = {
                 nextStatus: LOAD_STATUS.IN_TRANSIT,
                 stopUpdates: [
                     {
@@ -76,13 +83,14 @@ export function computeDriverTransition(
                     actualTime: now,
                 },
             }
+            break
         }
 
         case 'ARRIVE_DELIVERY': {
             if (currentStatus !== LOAD_STATUS.IN_TRANSIT) {
                 throw new Error(`Cannot arrive at delivery from status: ${currentStatus}`)
             }
-            return {
+            result = {
                 nextStatus: LOAD_STATUS.AT_DELIVERY,
                 stopUpdates: [],
                 eventType: EVENT_TYPE.STATUS_CHANGED,
@@ -91,6 +99,7 @@ export function computeDriverTransition(
                     newStatus: LOAD_STATUS.AT_DELIVERY,
                 },
             }
+            break
         }
 
         case 'MARK_DELIVERED': {
@@ -104,7 +113,7 @@ export function computeDriverTransition(
             }
             const deliveryStop = stops[deliveryIndex] as Stop
 
-            return {
+            result = {
                 nextStatus: LOAD_STATUS.DELIVERED,
                 stopUpdates: [
                     {
@@ -123,11 +132,17 @@ export function computeDriverTransition(
                     actualTime: now,
                 },
             }
+            break
         }
 
         default:
             throw new Error(`Unknown driver action: ${action}`)
     }
+
+    // Validate result in dev mode
+    devValidate(DriverTransitionResultSchema, result, 'computeDriverTransition result')
+
+    return result
 }
 
 /**
