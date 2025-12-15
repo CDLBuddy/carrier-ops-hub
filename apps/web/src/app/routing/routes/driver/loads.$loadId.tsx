@@ -1,13 +1,11 @@
 // carrier-ops-hub/apps/web/src/app/routing/routes/driver/loads.$loadId.tsx
 
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useLoad, useUpdateLoad, type LoadData } from '@/features/loads/hooks'
+import { useLoad, useDriverAction, type LoadData } from '@/features/loads/hooks'
 import { useDocuments, useUploadDocument } from '@/features/documents/hooks'
 import { useEvents } from '@/features/events/hooks'
 import { useState } from 'react'
-import { useAuth } from '@/app/providers/AuthContext'
-import { LOAD_STATUS, DOCUMENT_TYPE, EVENT_TYPE, type EventType, type Address } from '@coh/shared'
-import { eventsRepo } from '@/services/repos/events.repo'
+import { LOAD_STATUS, DOCUMENT_TYPE, type Address } from '@coh/shared'
 import { requireAuth } from '@/app/routing/guards/requireAuth'
 import { requireRole } from '@/app/routing/guards/requireRole'
 
@@ -29,30 +27,13 @@ export const Route = createFileRoute('/driver/loads/$loadId')({
 
 function DriverLoadDetailPage() {
   const { loadId } = Route.useParams()
-  const { user, claims } = useAuth()
   const { data: load, isLoading: loadLoading } = useLoad(loadId)
   const { data: documents = [], isLoading: docsLoading } = useDocuments(loadId)
   const { data: events = [], isLoading: eventsLoading } = useEvents(loadId)
-  const { mutate: updateLoad } = useUpdateLoad(loadId)
+  const { mutate: performAction, isPending } = useDriverAction(loadId)
   const { mutate: uploadDocument } = useUploadDocument(loadId)
 
   const [uploading, setUploading] = useState(false)
-
-  const handleStatusChange = async (newStatus: string, eventType: EventType) => {
-    if (!claims.fleetId || !user?.uid) return
-
-    // Create event first
-    await eventsRepo.create({
-      fleetId: claims.fleetId,
-      loadId,
-      type: eventType,
-      actorUid: user.uid,
-      payload: { previousStatus: load?.status, newStatus },
-    })
-
-    // Update load status
-    updateLoad({ status: newStatus })
-  }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -98,34 +79,38 @@ function DriverLoadDetailPage() {
         <div className="grid grid-cols-2 gap-3">
           {loadData.status === LOAD_STATUS.ASSIGNED && (
             <button
-              onClick={() => handleStatusChange(LOAD_STATUS.AT_PICKUP, EVENT_TYPE.STATUS_CHANGED)}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              onClick={() => performAction('ARRIVE_PICKUP')}
+              disabled={isPending}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400"
             >
-              Arrived at Pickup
+              {isPending ? 'Updating...' : 'Arrived at Pickup'}
             </button>
           )}
           {loadData.status === LOAD_STATUS.AT_PICKUP && (
             <button
-              onClick={() => handleStatusChange(LOAD_STATUS.IN_TRANSIT, EVENT_TYPE.STOP_COMPLETED)}
-              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+              onClick={() => performAction('DEPART_PICKUP')}
+              disabled={isPending}
+              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-gray-400"
             >
-              Depart Pickup (In Transit)
+              {isPending ? 'Updating...' : 'Depart Pickup (In Transit)'}
             </button>
           )}
           {loadData.status === LOAD_STATUS.IN_TRANSIT && (
             <button
-              onClick={() => handleStatusChange(LOAD_STATUS.AT_DELIVERY, EVENT_TYPE.STATUS_CHANGED)}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              onClick={() => performAction('ARRIVE_DELIVERY')}
+              disabled={isPending}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400"
             >
-              Arrived at Delivery
+              {isPending ? 'Updating...' : 'Arrived at Delivery'}
             </button>
           )}
           {loadData.status === LOAD_STATUS.AT_DELIVERY && (
             <button
-              onClick={() => handleStatusChange(LOAD_STATUS.DELIVERED, EVENT_TYPE.STOP_COMPLETED)}
-              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+              onClick={() => performAction('MARK_DELIVERED')}
+              disabled={isPending}
+              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:bg-gray-400"
             >
-              Mark Delivered
+              {isPending ? 'Updating...' : 'Mark Delivered'}
             </button>
           )}
         </div>

@@ -16,6 +16,7 @@ import {
 import { db } from '@/firebase/firestore'
 import { COLLECTIONS, LOAD_STATUS, EVENT_TYPE } from '@coh/shared'
 import { withDocId, assertFleetMatch } from './repoUtils'
+import type { DriverLoadAction } from '@/features/loads/lifecycle'
 
 export interface LoadData {
   id: string // Added by withDocId
@@ -150,6 +151,99 @@ export const loadsRepo = {
       driverId,
       vehicleId,
       status: LOAD_STATUS.ASSIGNED,
+      updatedAt: now,
+    }
+  },
+
+  async applyDriverAction({
+    fleetId,
+    loadId,
+    action,
+    actorUid,
+    actorDriverId,
+  }: {
+    fleetId: string
+    loadId: string
+    action: DriverLoadAction
+    actorUid: string
+    actorDriverId: string
+  }) {
+    if (!actorUid) {
+      throw new Error('actorUid is required')
+    }
+    if (!actorDriverId) {
+      throw new Error('actorDriverId is required')
+    }
+
+    // Fetch load document
+    const loadRef = doc(db, COLLECTIONS.LOADS, loadId)
+    const snapshot = await getDoc(loadRef)
+
+    if (!snapshot.exists()) {
+      throw new Error('Load not found')
+    }
+
+    const load = withDocId<LoadData>(snapshot)
+
+    // Assert fleet match
+    assertFleetMatch({
+      expectedFleetId: fleetId,
+      actualFleetId: load.fleetId,
+      entity: 'load',
+      id: loadId,
+    })
+
+    // Enforce driver ownership
+    if (load.driverId !== actorDriverId) {
+      throw new Error(`Forbidden: load ${loadId} not assigned to driver ${actorDriverId}`)
+    }
+
+    // Compute transition using lifecycle module
+    const { computeDriverTransition } = await import('@/features/loads/lifecycle.js')
+    const now = Date.now()
+    const transition = computeDriverTransition(load, action, now)
+
+    // Apply stop updates to stops array
+    const updatedStops = [...(load.stops || [])]
+    for (const stopUpdate of transition.stopUpdates) {
+      if (stopUpdate.index >= 0 && stopUpdate.index < updatedStops.length) {
+        updatedStops[stopUpdate.index] = {
+          ...updatedStops[stopUpdate.index],
+          actualTime: stopUpdate.actualTime,
+          isCompleted: stopUpdate.isCompleted,
+          updatedAt: stopUpdate.updatedAt,
+        }
+      }
+    }
+
+    // Batch write
+    const batch = writeBatch(db)
+
+    // Update load document
+    batch.update(loadRef, {
+      status: transition.nextStatus,
+      stops: updatedStops,
+      updatedAt: now,
+    })
+
+    // Create event
+    const eventsRef = collection(db, COLLECTIONS.EVENTS)
+    const eventRef = doc(eventsRef)
+    batch.set(eventRef, {
+      fleetId,
+      loadId,
+      type: transition.eventType,
+      actorUid,
+      createdAt: now,
+      payload: transition.eventPayload,
+    })
+
+    await batch.commit()
+
+    return {
+      id: loadId,
+      status: transition.nextStatus,
+      stops: updatedStops,
       updatedAt: now,
     }
   },

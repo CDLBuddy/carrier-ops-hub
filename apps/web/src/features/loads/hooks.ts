@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { loadsRepo, type LoadData } from '@/services/repos/loads.repo'
 import { queryKeys } from '@/data/queryKeys'
 import { useAuth } from '@/app/providers/AuthContext'
+import type { DriverLoadAction } from './lifecycle'
 
 export type { LoadData }
 
@@ -80,6 +81,31 @@ export function useCreateLoad() {
     onSuccess: () => {
       if (fleetId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.loads.byFleet(fleetId) })
+      }
+    },
+  })
+}
+
+export function useDriverAction(loadId: string) {
+  const { claims, user } = useAuth()
+  const queryClient = useQueryClient()
+  const fleetId = claims.fleetId
+  const driverId = claims.driverId
+
+  return useMutation({
+    mutationFn: (action: DriverLoadAction) =>
+      loadsRepo.applyDriverAction({
+        fleetId: fleetId || '',
+        loadId,
+        action,
+        actorUid: user?.uid || '',
+        actorDriverId: driverId || '',
+      }),
+    onSuccess: () => {
+      if (fleetId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.loads.detail(fleetId, loadId) })
+        queryClient.invalidateQueries({ queryKey: queryKeys.loads.byFleet(fleetId) })
+        queryClient.invalidateQueries({ queryKey: queryKeys.events.byLoad(fleetId, loadId) })
       }
     },
   })
