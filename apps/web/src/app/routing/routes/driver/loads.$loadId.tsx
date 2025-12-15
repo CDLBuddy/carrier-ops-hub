@@ -1,7 +1,7 @@
 // carrier-ops-hub/apps/web/src/app/routing/routes/driver/loads.$loadId.tsx
 
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useLoad, useUpdateLoad } from '@/features/loads/hooks'
+import { useLoad, useUpdateLoad, type LoadData } from '@/features/loads/hooks'
 import { useDocuments, useUploadDocument } from '@/features/documents/hooks'
 import { useEvents } from '@/features/events/hooks'
 import { useState } from 'react'
@@ -19,31 +19,6 @@ interface StopData {
   [key: string]: unknown
 }
 
-interface LoadData {
-  id: string
-  loadNumber?: string
-  status?: string
-  driverId?: string
-  vehicleId?: string
-  stops?: StopData[]
-  [key: string]: unknown
-}
-
-interface DocumentData {
-  id?: string
-  type?: string
-  createdAt?: number
-  url?: string
-  [key: string]: unknown
-}
-
-interface EventData {
-  id?: string
-  type?: string
-  createdAt?: number
-  [key: string]: unknown
-}
-
 export const Route = createFileRoute('/driver/loads/$loadId')({
   beforeLoad: ({ context }) => {
     requireAuth(context.auth)
@@ -55,18 +30,9 @@ export const Route = createFileRoute('/driver/loads/$loadId')({
 function DriverLoadDetailPage() {
   const { loadId } = Route.useParams()
   const { user, claims } = useAuth()
-  const { data: load, isLoading: loadLoading } = useLoad(loadId) as {
-    data: LoadData | undefined
-    isLoading: boolean
-  }
-  const { data: documents = [], isLoading: docsLoading } = useDocuments(loadId) as {
-    data: DocumentData[]
-    isLoading: boolean
-  }
-  const { data: events = [], isLoading: eventsLoading } = useEvents(loadId) as {
-    data: EventData[]
-    isLoading: boolean
-  }
+  const { data: load, isLoading: loadLoading } = useLoad(loadId)
+  const { data: documents = [], isLoading: docsLoading } = useDocuments(loadId)
+  const { data: events = [], isLoading: eventsLoading } = useEvents(loadId)
   const { mutate: updateLoad } = useUpdateLoad(loadId)
   const { mutate: uploadDocument } = useUploadDocument(loadId)
 
@@ -207,7 +173,7 @@ function DriverLoadDetailPage() {
           <p>Loading documents...</p>
         ) : documents.length > 0 ? (
           <ul className="space-y-2">
-            {documents.map((doc: DocumentData) => (
+            {documents.map((doc) => (
               <li key={doc.id ?? Math.random()} className="flex items-center justify-between">
                 <span className="text-sm">
                   {doc.type ?? 'Unknown'} -{' '}
@@ -236,7 +202,7 @@ function DriverLoadDetailPage() {
           <p>Loading events...</p>
         ) : events.length > 0 ? (
           <ul className="space-y-2">
-            {events.map((event: EventData) => (
+            {events.map((event) => (
               <li key={event.id ?? Math.random()} className="text-sm">
                 <span className="font-medium">{event.type ?? 'Unknown'}</span>
                 <span className="text-gray-600 ml-2">

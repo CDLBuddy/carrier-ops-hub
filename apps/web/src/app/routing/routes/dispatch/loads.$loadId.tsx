@@ -1,12 +1,12 @@
 // carrier-ops-hub/apps/web/src/app/routing/routes/dispatch/loads.$loadId.tsx
 
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useLoad, useUpdateLoad } from '@/features/loads/hooks'
+import { useLoad, useAssignLoad, type LoadData } from '@/features/loads/hooks'
 import { useDocuments, useUploadDocument } from '@/features/documents/hooks'
 import { useEvents } from '@/features/events/hooks'
 import { useDrivers } from '@/features/drivers/hooks'
 import { useVehicles } from '@/features/vehicles/hooks'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { LOAD_STATUS, DOCUMENT_TYPE, type Address } from '@coh/shared'
 import { requireAuth } from '@/app/routing/guards/requireAuth'
 import { requireRole } from '@/app/routing/guards/requireRole'
@@ -16,31 +16,6 @@ interface StopData {
   address?: Address
   scheduledTime?: number
   actualTime?: number | null
-  [key: string]: unknown
-}
-
-interface LoadData {
-  id: string
-  loadNumber?: string
-  status?: string
-  driverId?: string
-  vehicleId?: string
-  stops?: StopData[]
-  [key: string]: unknown
-}
-
-interface DocumentData {
-  id?: string
-  type?: string
-  createdAt?: number
-  url?: string
-  [key: string]: unknown
-}
-
-interface EventData {
-  id?: string
-  type?: string
-  createdAt?: number
   [key: string]: unknown
 }
 
@@ -54,26 +29,25 @@ export const Route = createFileRoute('/dispatch/loads/$loadId')({
 
 function LoadDetailPage() {
   const { loadId } = Route.useParams()
-  const { data: load, isLoading: loadLoading } = useLoad(loadId) as {
-    data: LoadData | undefined
-    isLoading: boolean
-  }
-  const { data: documents = [], isLoading: docsLoading } = useDocuments(loadId) as {
-    data: DocumentData[]
-    isLoading: boolean
-  }
-  const { data: events = [], isLoading: eventsLoading } = useEvents(loadId) as {
-    data: EventData[]
-    isLoading: boolean
-  }
+  const { data: load, isLoading: loadLoading } = useLoad(loadId)
+  const { data: documents = [], isLoading: docsLoading } = useDocuments(loadId)
+  const { data: events = [], isLoading: eventsLoading } = useEvents(loadId)
   const { data: drivers = [], isLoading: driversLoading } = useDrivers()
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles()
-  const { mutate: updateLoad } = useUpdateLoad(loadId)
+  const { mutate: assignLoad } = useAssignLoad(loadId)
   const { mutate: uploadDocument } = useUploadDocument(loadId)
 
   const [selectedDriver, setSelectedDriver] = useState('')
   const [selectedVehicle, setSelectedVehicle] = useState('')
   const [uploading, setUploading] = useState(false)
+
+  // Preselect dropdowns when load data changes
+  useEffect(() => {
+    if (load) {
+      setSelectedDriver(load.driverId ?? '')
+      setSelectedVehicle(load.vehicleId ?? '')
+    }
+  }, [load])
 
   // Build lookup maps for pretty labels
   const driverMap = useMemo(() => new Map(drivers.map((d) => [d.id, d])), [drivers])
@@ -81,12 +55,7 @@ function LoadDetailPage() {
 
   const handleAssign = () => {
     if (!selectedDriver || !selectedVehicle) return
-    const updates: Partial<LoadData> = {
-      driverId: selectedDriver,
-      vehicleId: selectedVehicle,
-      status: LOAD_STATUS.ASSIGNED,
-    }
-    updateLoad(updates)
+    assignLoad({ driverId: selectedDriver, vehicleId: selectedVehicle })
   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,10 +112,12 @@ function LoadDetailPage() {
         )}
       </div>
 
-      {/* Assignment Section (if not assigned) */}
-      {loadData.status === LOAD_STATUS.UNASSIGNED && (
+      {/* Assignment Section */}
+      {(loadData.status === LOAD_STATUS.UNASSIGNED || loadData.status === LOAD_STATUS.ASSIGNED) && (
         <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Assign Load</h2>
+          <h2 className="text-lg font-semibold mb-4">
+            {loadData.status === LOAD_STATUS.ASSIGNED ? 'Reassign Load' : 'Assign Load'}
+          </h2>
           {driversLoading || vehiclesLoading ? (
             <p className="text-gray-600">Loading drivers and vehicles...</p>
           ) : (
@@ -164,7 +135,11 @@ function LoadDetailPage() {
                     >
                       <option value="">Select driver...</option>
                       {drivers.map((driver) => (
-                        <option key={driver.id} value={driver.id}>
+                        <option
+                          key={driver.id}
+                          value={driver.id}
+                          disabled={driver.status !== 'ACTIVE'}
+                        >
                           {driver.firstName} {driver.lastName}
                           {driver.status !== 'ACTIVE' ? ` (${driver.status})` : ''}
                         </option>
@@ -184,7 +159,13 @@ function LoadDetailPage() {
                     >
                       <option value="">Select vehicle...</option>
                       {vehicles.map((vehicle) => (
-                        <option key={vehicle.id} value={vehicle.id}>
+                        <option
+                          key={vehicle.id}
+                          value={vehicle.id}
+                          disabled={
+                            vehicle.status === 'INACTIVE' || vehicle.status === 'OUT_OF_SERVICE'
+                          }
+                        >
                           {vehicle.vehicleNumber} • {vehicle.make} {vehicle.model} ({vehicle.year})
                           {vehicle.status !== 'ACTIVE' ? ` (${vehicle.status})` : ''}
                         </option>
@@ -198,7 +179,7 @@ function LoadDetailPage() {
                 disabled={!selectedDriver || !selectedVehicle}
                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
               >
-                Assign Load
+                {loadData.status === LOAD_STATUS.ASSIGNED ? 'Reassign Load' : 'Assign Load'}
               </button>
             </>
           )}
@@ -244,7 +225,7 @@ function LoadDetailPage() {
           <p>Loading documents...</p>
         ) : documents.length > 0 ? (
           <ul className="space-y-2">
-            {documents.map((doc: DocumentData) => (
+            {documents.map((doc) => (
               <li key={doc.id as string} className="flex items-center justify-between">
                 <span className="text-sm">
                   {doc.type ?? 'Unknown'} -{' '}
@@ -275,7 +256,7 @@ function LoadDetailPage() {
           <p>Loading events...</p>
         ) : events.length > 0 ? (
           <ul className="space-y-2">
-            {events.map((event: EventData) => (
+            {events.map((event) => (
               <li key={event.id as string} className="text-sm">
                 <span className="font-medium">{event.type ?? 'Unknown'}</span>
                 <span className="text-gray-600 ml-2">

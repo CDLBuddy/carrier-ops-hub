@@ -1,16 +1,22 @@
 // carrier-ops-hub/apps/web/src/features/documents/hooks.ts
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { documentsRepo, type UploadDocumentParams } from '@/services/repos/documents.repo'
+import {
+  documentsRepo,
+  type UploadDocumentParams,
+  type DocumentData,
+} from '@/services/repos/documents.repo'
 import { queryKeys } from '@/data/queryKeys'
 import { useAuth } from '@/app/providers/AuthContext'
+
+export type { DocumentData, UploadDocumentParams }
 
 export function useDocuments(loadId: string) {
   const { claims } = useAuth()
   const fleetId = claims.fleetId
 
   return useQuery({
-    queryKey: queryKeys.documents.byLoad(loadId),
+    queryKey: queryKeys.documents.byLoad(fleetId || '', loadId),
     queryFn: () => documentsRepo.listForLoad({ fleetId: fleetId || '', loadId }),
     enabled: !!fleetId && !!loadId,
   })
@@ -30,8 +36,8 @@ export function useUploadDocument(loadId: string) {
         ...params,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.documents.byLoad(loadId) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.events.byLoad(loadId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents.byLoad(fleetId || '', loadId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.byLoad(fleetId || '', loadId) })
     },
   })
 }

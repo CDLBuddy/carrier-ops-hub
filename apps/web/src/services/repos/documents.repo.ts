@@ -6,6 +6,24 @@ import { db } from '@/firebase/firestore'
 import { storage } from '@/firebase/storage'
 import { COLLECTIONS, DOCUMENT_TYPE, EVENT_TYPE } from '@coh/shared'
 import { eventsRepo } from './events.repo'
+import { withDocId } from './repoUtils'
+
+export interface DocumentData {
+  id: string
+  fleetId: string
+  loadId: string
+  type: string
+  fileName: string
+  storagePath: string
+  url: string
+  contentType: string
+  size: number
+  uploadedBy: string
+  notes?: string
+  amount?: number
+  createdAt: number
+  updatedAt: number
+}
 
 export interface UploadDocumentParams {
   fleetId: string
@@ -28,7 +46,7 @@ export const documentsRepo = {
     )
 
     const snapshot = await getDocs(q)
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    return snapshot.docs.map((snap) => withDocId<DocumentData>(snap))
   },
 
   async upload({ fleetId, loadId, file, docType, actorUid, notes, amount }: UploadDocumentParams) {

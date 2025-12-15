@@ -1,24 +1,12 @@
 // carrier-ops-hub/apps/web/src/app/routing/routes/billing/dashboard.tsx
 
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useLoads } from '@/features/loads/hooks'
-import { useDocuments } from '@/features/documents/hooks'
+import { useLoads, type LoadData } from '@/features/loads/hooks'
+import { useDocuments, type DocumentData } from '@/features/documents/hooks'
 import { LOAD_STATUS, DOCUMENT_TYPE } from '@coh/shared'
 import { useMemo } from 'react'
 import { requireAuth } from '@/app/routing/guards/requireAuth'
 import { requireRole } from '@/app/routing/guards/requireRole'
-
-interface LoadData {
-  id: string
-  loadNumber?: string
-  status?: string
-  [key: string]: unknown
-}
-
-interface DocumentData {
-  type?: string
-  [key: string]: unknown
-}
 
 export const Route = createFileRoute('/billing/dashboard')({
   beforeLoad: ({ context }) => {
@@ -29,20 +17,17 @@ export const Route = createFileRoute('/billing/dashboard')({
 })
 
 function BillingDashboard() {
-  const { data: loads = [], isLoading: loadsLoading } = useLoads() as {
-    data: LoadData[]
-    isLoading: boolean
-  }
+  const { data: loads = [], isLoading: loadsLoading } = useLoads()
 
   // Filter delivered loads
-  const deliveredLoads = loads.filter((load: LoadData) => load.status === LOAD_STATUS.DELIVERED)
+  const deliveredLoads = loads.filter((load) => load.status === LOAD_STATUS.DELIVERED)
 
   // Group loads by billing readiness
   const { readyLoads, blockedLoads } = useMemo(() => {
     const ready: LoadData[] = []
     const blocked: LoadData[] = []
 
-    deliveredLoads.forEach((load: LoadData) => {
+    deliveredLoads.forEach((load) => {
       // Check if load has required documents (will be determined per load)
       ready.push(load) // Temporarily add to ready, will be refined below
     })
@@ -100,10 +85,8 @@ function BillingDashboard() {
 function LoadBillingCard({ load }: { load: LoadData }) {
   const { data: documents = [] } = useDocuments(load.id) as { data: DocumentData[] }
 
-  const hasPOD = documents.some((doc: DocumentData) => doc.type === DOCUMENT_TYPE.POD)
-  const hasRateConfirmation = documents.some(
-    (doc: DocumentData) => doc.type === DOCUMENT_TYPE.RATE_CONFIRMATION
-  )
+  const hasPOD = documents.some((doc) => doc.type === DOCUMENT_TYPE.POD)
+  const hasRateConfirmation = documents.some((doc) => doc.type === DOCUMENT_TYPE.RATE_CONFIRMATION)
 
   const isActuallyReady = hasPOD && hasRateConfirmation
   const missingDocs: string[] = []

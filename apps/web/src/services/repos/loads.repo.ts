@@ -11,11 +11,14 @@ import {
   doc,
   getDoc,
   updateDoc,
+  writeBatch,
 } from 'firebase/firestore'
 import { db } from '@/firebase/firestore'
-import { COLLECTIONS } from '@coh/shared'
+import { COLLECTIONS, LOAD_STATUS, EVENT_TYPE } from '@coh/shared'
+import { withDocId, assertFleetMatch } from './repoUtils'
 
 export interface LoadData {
+  id: string // Added by withDocId
   fleetId: string
   loadNumber?: string
   status: string
@@ -39,7 +42,7 @@ export const loadsRepo = {
     )
 
     const snapshot = await getDocs(q)
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    return snapshot.docs.map((snap) => withDocId<LoadData>(snap))
   },
 
   async getById({ fleetId, loadId }: { fleetId: string; loadId: string }) {
@@ -50,12 +53,15 @@ export const loadsRepo = {
       throw new Error('Load not found')
     }
 
-    const data = snapshot.data()
-    if (data.fleetId !== fleetId) {
-      throw new Error('Unauthorized access to load')
-    }
+    const load = withDocId<LoadData>(snapshot)
+    assertFleetMatch({
+      expectedFleetId: fleetId,
+      actualFleetId: load.fleetId,
+      entity: 'load',
+      id: loadId,
+    })
 
-    return { id: snapshot.id, ...data }
+    return load
   },
 
   async updateLoad({
@@ -98,5 +104,53 @@ export const loadsRepo = {
 
     const docRef = await addDoc(loadsRef, loadData)
     return { id: docRef.id, ...loadData }
+  },
+
+  async assignLoad({
+    fleetId,
+    loadId,
+    driverId,
+    vehicleId,
+    actorUid,
+  }: {
+    fleetId: string
+    loadId: string
+    driverId: string
+    vehicleId: string
+    actorUid: string
+  }) {
+    const batch = writeBatch(db)
+    const now = Date.now()
+
+    // Update load
+    const loadRef = doc(db, COLLECTIONS.LOADS, loadId)
+    batch.update(loadRef, {
+      driverId,
+      vehicleId,
+      status: LOAD_STATUS.ASSIGNED,
+      updatedAt: now,
+    })
+
+    // Create LOAD_ASSIGNED event
+    const eventsRef = collection(db, COLLECTIONS.EVENTS)
+    const eventRef = doc(eventsRef)
+    batch.set(eventRef, {
+      fleetId,
+      loadId,
+      type: EVENT_TYPE.LOAD_ASSIGNED,
+      actorUid,
+      createdAt: now,
+      payload: { driverId, vehicleId },
+    })
+
+    await batch.commit()
+
+    return {
+      id: loadId,
+      driverId,
+      vehicleId,
+      status: LOAD_STATUS.ASSIGNED,
+      updatedAt: now,
+    }
   },
 }

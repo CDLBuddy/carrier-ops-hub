@@ -5,19 +5,22 @@
 export const queryKeys = {
   loads: {
     all: ['loads'] as const,
-    byFleet: (fleetId: string) => [...queryKeys.loads.all, fleetId] as const,
+    byFleet: (fleetId: string) => [...queryKeys.loads.all, 'fleet', fleetId] as const,
     lists: () => [...queryKeys.loads.all, 'list'] as const,
     list: (filters: unknown) => [...queryKeys.loads.lists(), filters] as const,
     details: () => [...queryKeys.loads.all, 'detail'] as const,
-    detail: (id: string) => [...queryKeys.loads.details(), id] as const,
+    detail: (fleetId: string, loadId: string) =>
+      [...queryKeys.loads.all, 'fleet', fleetId, 'detail', loadId] as const,
   },
   events: {
     all: ['events'] as const,
-    byLoad: (loadId: string) => [...queryKeys.events.all, 'load', loadId] as const,
+    byLoad: (fleetId: string, loadId: string) =>
+      [...queryKeys.events.all, 'fleet', fleetId, 'load', loadId] as const,
   },
   documents: {
     all: ['documents'] as const,
-    byLoad: (loadId: string) => [...queryKeys.documents.all, 'load', loadId] as const,
+    byLoad: (fleetId: string, loadId: string) =>
+      [...queryKeys.documents.all, 'fleet', fleetId, 'load', loadId] as const,
   },
   drivers: {
     all: ['drivers'] as const,

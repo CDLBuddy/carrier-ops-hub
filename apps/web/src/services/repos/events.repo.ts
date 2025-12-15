@@ -3,6 +3,17 @@
 import { collection, query, where, orderBy, limit, addDoc, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase/firestore'
 import { COLLECTIONS, type EventType } from '@coh/shared'
+import { withDocId } from './repoUtils'
+
+export interface EventData {
+  id: string
+  fleetId: string
+  loadId: string
+  type: EventType
+  actorUid: string
+  createdAt: number
+  payload?: Record<string, unknown>
+}
 
 export interface CreateEventParams {
   fleetId: string
@@ -32,7 +43,7 @@ export const eventsRepo = {
     )
 
     const snapshot = await getDocs(q)
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    return snapshot.docs.map((snap) => withDocId<EventData>(snap))
   },
 
   async create({ fleetId, loadId, type, actorUid, payload }: CreateEventParams) {

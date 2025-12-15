@@ -1,6 +1,6 @@
 // carrier-ops-hub/apps/web/src/app/routing/routes/dispatch/dashboard.tsx
 
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { requireAuth } from '@/app/routing/guards/requireAuth'
 import { requireRole } from '@/app/routing/guards/requireRole'
@@ -194,29 +194,43 @@ function DispatchDashboard() {
         {!isLoading && loads && loads.length > 0 && (
           <div>
             {loads.map((load: LoadData) => (
-              <div
+              <Link
                 key={load.id}
-                style={{
-                  padding: '1rem',
-                  borderBottom: '1px solid #e5e7eb',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
+                to="/dispatch/loads/$loadId"
+                params={{ loadId: load.id }}
+                style={{ textDecoration: 'none', color: 'inherit' }}
               >
-                <div>
-                  <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
-                    {load.loadNumber ?? 'Unknown'}
+                <div
+                  style={{
+                    padding: '1rem',
+                    borderBottom: '1px solid #e5e7eb',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f9fafb'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                      {load.loadNumber ?? 'Unknown'}
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#666' }}>
+                      Status: {load.status ?? 'Unknown'}
+                      {load.customerName && ` • ${load.customerName}`}
+                    </div>
                   </div>
                   <div style={{ fontSize: '0.875rem', color: '#666' }}>
-                    Status: {load.status ?? 'Unknown'}
-                    {load.customerName && ` • ${load.customerName}`}
+                    {load.updatedAt ? new Date(load.updatedAt).toLocaleDateString() : 'Unknown'}
                   </div>
                 </div>
-                <div style={{ fontSize: '0.875rem', color: '#666' }}>
-                  {load.updatedAt ? new Date(load.updatedAt).toLocaleDateString() : 'Unknown'}
-                </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

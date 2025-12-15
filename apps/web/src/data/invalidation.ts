@@ -9,10 +9,10 @@ export function invalidateLoads() {
   return queryClient.invalidateQueries({ queryKey: queryKeys.loads.all })
 }
 
-export function invalidateLoad(loadId: string) {
-  return queryClient.invalidateQueries({ queryKey: queryKeys.loads.detail(loadId) })
+export function invalidateLoad(fleetId: string, loadId: string) {
+  return queryClient.invalidateQueries({ queryKey: queryKeys.loads.detail(fleetId, loadId) })
 }
 
-export function invalidateEvents(loadId: string) {
-  return queryClient.invalidateQueries({ queryKey: queryKeys.events.byLoad(loadId) })
+export function invalidateEvents(fleetId: string, loadId: string) {
+  return queryClient.invalidateQueries({ queryKey: queryKeys.events.byLoad(fleetId, loadId) })
 }

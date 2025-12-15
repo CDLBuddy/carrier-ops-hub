@@ -10,7 +10,7 @@ export function useEvents(loadId: string) {
   const fleetId = claims.fleetId
 
   return useQuery({
-    queryKey: queryKeys.events.byLoad(loadId),
+    queryKey: queryKeys.events.byLoad(fleetId || '', loadId),
     queryFn: () => eventsRepo.listForLoad({ fleetId: fleetId || '', loadId }),
     enabled: !!fleetId && !!loadId,
   })
