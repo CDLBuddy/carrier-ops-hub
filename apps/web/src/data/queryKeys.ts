@@ -19,4 +19,12 @@ export const queryKeys = {
     all: ['documents'] as const,
     byLoad: (loadId: string) => [...queryKeys.documents.all, 'load', loadId] as const,
   },
+  drivers: {
+    all: ['drivers'] as const,
+    byFleet: (fleetId: string) => [...queryKeys.drivers.all, 'fleet', fleetId] as const,
+  },
+  vehicles: {
+    all: ['vehicles'] as const,
+    byFleet: (fleetId: string) => [...queryKeys.vehicles.all, 'fleet', fleetId] as const,
+  },
 } as const

@@ -3,3 +3,5 @@
 export * from './loads.repo'
 export * from './events.repo'
 export * from './documents.repo'
+export * from './drivers.repo'
+export * from './vehicles.repo'

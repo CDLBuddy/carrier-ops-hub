@@ -4,7 +4,9 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useLoad, useUpdateLoad } from '@/features/loads/hooks'
 import { useDocuments, useUploadDocument } from '@/features/documents/hooks'
 import { useEvents } from '@/features/events/hooks'
-import { useState } from 'react'
+import { useDrivers } from '@/features/drivers/hooks'
+import { useVehicles } from '@/features/vehicles/hooks'
+import { useState, useMemo } from 'react'
 import { LOAD_STATUS, DOCUMENT_TYPE, type Address } from '@coh/shared'
 import { requireAuth } from '@/app/routing/guards/requireAuth'
 import { requireRole } from '@/app/routing/guards/requireRole'
@@ -64,12 +66,18 @@ function LoadDetailPage() {
     data: EventData[]
     isLoading: boolean
   }
+  const { data: drivers = [], isLoading: driversLoading } = useDrivers()
+  const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles()
   const { mutate: updateLoad } = useUpdateLoad(loadId)
   const { mutate: uploadDocument } = useUploadDocument(loadId)
 
   const [selectedDriver, setSelectedDriver] = useState('')
   const [selectedVehicle, setSelectedVehicle] = useState('')
   const [uploading, setUploading] = useState(false)
+
+  // Build lookup maps for pretty labels
+  const driverMap = useMemo(() => new Map(drivers.map((d) => [d.id, d])), [drivers])
+  const vehicleMap = useMemo(() => new Map(vehicles.map((v) => [v.id, v])), [vehicles])
 
   const handleAssign = () => {
     if (!selectedDriver || !selectedVehicle) return
@@ -118,10 +126,20 @@ function LoadDetailPage() {
           {loadData.status ?? 'Unknown'}
         </span>
         {loadData.driverId && (
-          <span className="text-sm text-gray-600">Driver: {loadData.driverId}</span>
+          <span className="text-sm text-gray-600">
+            Driver:{' '}
+            {driverMap.get(loadData.driverId)
+              ? `${driverMap.get(loadData.driverId)!.firstName} ${driverMap.get(loadData.driverId)!.lastName}`
+              : loadData.driverId}
+          </span>
         )}
         {loadData.vehicleId && (
-          <span className="text-sm text-gray-600">Vehicle: {loadData.vehicleId}</span>
+          <span className="text-sm text-gray-600">
+            Vehicle:{' '}
+            {vehicleMap.get(loadData.vehicleId)
+              ? vehicleMap.get(loadData.vehicleId)!.vehicleNumber
+              : loadData.vehicleId}
+          </span>
         )}
       </div>
 
@@ -129,35 +147,61 @@ function LoadDetailPage() {
       {loadData.status === LOAD_STATUS.UNASSIGNED && (
         <div className="bg-white p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-4">Assign Load</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Driver</label>
-              <input
-                type="text"
-                value={selectedDriver}
-                onChange={(e) => setSelectedDriver(e.target.value)}
-                placeholder="Driver UID"
-                className="w-full px-3 py-2 border border-gray-300 rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Vehicle</label>
-              <input
-                type="text"
-                value={selectedVehicle}
-                onChange={(e) => setSelectedVehicle(e.target.value)}
-                placeholder="Vehicle ID"
-                className="w-full px-3 py-2 border border-gray-300 rounded"
-              />
-            </div>
-          </div>
-          <button
-            onClick={handleAssign}
-            disabled={!selectedDriver || !selectedVehicle}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            Assign Load
-          </button>
+          {driversLoading || vehiclesLoading ? (
+            <p className="text-gray-600">Loading drivers and vehicles...</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Driver</label>
+                  {drivers.length === 0 ? (
+                    <p className="text-sm text-gray-500">No drivers available</p>
+                  ) : (
+                    <select
+                      value={selectedDriver}
+                      onChange={(e) => setSelectedDriver(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded"
+                    >
+                      <option value="">Select driver...</option>
+                      {drivers.map((driver) => (
+                        <option key={driver.id} value={driver.id}>
+                          {driver.firstName} {driver.lastName}
+                          {driver.status !== 'ACTIVE' ? ` (${driver.status})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Vehicle</label>
+                  {vehicles.length === 0 ? (
+                    <p className="text-sm text-gray-500">No vehicles available</p>
+                  ) : (
+                    <select
+                      value={selectedVehicle}
+                      onChange={(e) => setSelectedVehicle(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded"
+                    >
+                      <option value="">Select vehicle...</option>
+                      {vehicles.map((vehicle) => (
+                        <option key={vehicle.id} value={vehicle.id}>
+                          {vehicle.vehicleNumber} • {vehicle.make} {vehicle.model} ({vehicle.year})
+                          {vehicle.status !== 'ACTIVE' ? ` (${vehicle.status})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={handleAssign}
+                disabled={!selectedDriver || !selectedVehicle}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+              >
+                Assign Load
+              </button>
+            </>
+          )}
         </div>
       )}
 
