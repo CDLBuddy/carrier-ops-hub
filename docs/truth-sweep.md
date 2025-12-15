@@ -1,4 +1,4 @@
-﻿# Truth Sweep (Verified Baseline)  Phase 5.0.2c
+﻿# Truth Sweep (Verified Baseline) Phase 5.0.2c
 
 **Repo:** carrier-ops-hub  
 **Date:** 2025-12-14
@@ -27,6 +27,7 @@ export const ROLES = [
 ```
 
 **Role values (exact):**
+
 - `owner`
 - `dispatcher`
 - `fleet_manager`
@@ -43,7 +44,7 @@ This section documents the **canonical Zod schemas** used by the shared package.
 ### User
 
 **Source file:** `packages/shared/src/schemas/user.ts`  
-**Inferred type:** `User` (`export type User = z.infer<typeof UserSchema>`)  
+**Inferred type:** `User` (`export type User = z.infer<typeof UserSchema>`)
 
 **Excerpt:**
 
@@ -62,6 +63,7 @@ export const UserSchema = z.object({
 ```
 
 **Field list (top-level):**
+
 - `id: string`
 - `fleetId: string`
 - `email: string`
@@ -98,6 +100,7 @@ export const DriverSchema = z.object({
 ```
 
 **Field list (top-level):**
+
 - `id: string`
 - `fleetId: string`
 - `driverId?: string`
@@ -136,6 +139,7 @@ export const VehicleSchema = z.object({
 ```
 
 **Field list (top-level):**
+
 - `id: string`
 - `fleetId: string`
 - `vehicleNumber: string`
@@ -170,6 +174,7 @@ export const StopSchema = z.object({
 ```
 
 **Field list (top-level):**
+
 - `id: string`
 - `type: 'PICKUP' | 'DELIVERY'`
 - `sequence: number`
@@ -206,6 +211,7 @@ export const LoadSchema = z.object({
 ```
 
 **Field list (top-level):**
+
 - `id: string`
 - `fleetId: string`
 - `loadNumber: string`
@@ -240,6 +246,7 @@ export const EventSchema = z.object({
 ```
 
 **Field list (top-level):**
+
 - `id: string`
 - `fleetId: string`
 - `loadId: string`
@@ -275,6 +282,7 @@ export const DocumentSchema = z.object({
 ```
 
 **Field list (top-level):**
+
 - `id: string`
 - `fleetId: string`
 - `loadId: string`
@@ -295,6 +303,7 @@ export const DocumentSchema = z.object({
 ## Canonical Assignment Fields
 
 **Load assignment fields** (per `packages/shared/src/schemas/load.ts`):
+
 - `driverId: string | null`
 - `vehicleId: string | null`
 
@@ -304,22 +313,26 @@ export const DocumentSchema = z.object({
 
 This list is intentionally short and **evidence-backed**.
 
-1) **`bootstrapFleet` writes fields not in shared schemas**
+1. **`bootstrapFleet` writes fields not in shared schemas**
+
 - Evidence: `apps/functions/src/callable/bootstrapFleet.ts` writes a `users` document without required `email` from `UserSchema` (`packages/shared/src/schemas/user.ts`).
 - Evidence: `apps/functions/src/callable/bootstrapFleet.ts` writes a `drivers` document containing `userId` and `isActive`, but `DriverSchema` defines `driverId` and has no `isActive` field (`packages/shared/src/schemas/driver.ts`).
 
-2) **`documents.repo` upload is missing required `fileName`**
+2. **`documents.repo` upload is missing required `fileName`**
+
 - Evidence: `apps/web/src/services/repos/documents.repo.ts` constructs `document = { fleetId, loadId, type, storagePath, url, contentType, size, uploadedBy, createdAt, updatedAt, ... }` without `fileName`.
 - Canon: `packages/shared/src/schemas/document.ts` requires `fileName: z.string()`.
 
-3) **Load detail pages render `Stop.address` incorrectly**
+3. **Load detail pages render `Stop.address` incorrectly**
+
 - Canon: `packages/shared/src/schemas/stop.ts` defines `address: AddressSchema` (object), `scheduledTime: number`, `actualTime: number | null`.
 - Drift:
   - `apps/web/src/app/routing/routes/dispatch/loads.$loadId.tsx` treats `stop.address` as a string and reads `scheduledDate`/`scheduledTime` as date+string.
   - `apps/web/src/app/routing/routes/driver/loads.$loadId.tsx` treats `stop.address` as a string and reads `scheduledDate`/`scheduledTime` as date+string.
   - `apps/web/src/app/routing/routes/driver/home.tsx` treats `currentLoad.stops[0].address` as a string.
 
-4) **Unguarded non-auth routes (missing `beforeLoad` guard)**
+4. **Unguarded non-auth routes (missing `beforeLoad` guard)**
+
 - Guarded examples:
   - `apps/web/src/app/routing/routes/index.tsx` redirects when `!context.auth.user`.
   - `apps/web/src/app/routing/routes/dispatch/dashboard.tsx` uses `requireAuth()` and `requireRole()`.

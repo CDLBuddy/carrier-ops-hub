@@ -27,13 +27,7 @@ interface AuthClaims {
 ### Role Values (from `packages/shared/src/constants/roles.ts`)
 
 ```typescript
-type Role =
-  | 'owner'
-  | 'dispatcher'
-  | 'fleet_manager'
-  | 'maintenance_manager'
-  | 'billing'
-  | 'driver'
+type Role = 'owner' | 'dispatcher' | 'fleet_manager' | 'maintenance_manager' | 'billing' | 'driver'
 ```
 
 ### Identity Mapping Rules
@@ -41,7 +35,9 @@ type Role =
 1. **User UID → Firestore Doc:** Auth `user.uid` MUST match Firestore `users/{uid}` document ID
 2. **Driver Identity (current bootstrap behavior):** In emulator/dev bootstrap, driver users are created with `driverId = uid`.
    - ✅ Correct: `uid='abc123'` → `claims.driverId='abc123'`
-  - Evidence: `apps/functions/src/callable/bootstrapFleet.ts` sets `driverId = uid` and assigns `userData.driverId = driverId`.
+
+- Evidence: `apps/functions/src/callable/bootstrapFleet.ts` sets `driverId = uid` and assigns `userData.driverId = driverId`.
+
 3. **Fleet Scope:** All Firestore queries MUST filter by `fleetId` from claims
 
 ### Firestore Rules Assumptions
@@ -92,10 +88,10 @@ Evidence: `apps/functions/src/callable/bootstrapFleet.ts` writes:
 
 ```typescript
 {
-  id: string;
-  name: string;
-  createdAt: number;
-  updatedAt: number;
+  id: string
+  name: string
+  createdAt: number
+  updatedAt: number
 }
 ```
 
@@ -129,21 +125,21 @@ Evidence: `apps/functions/src/callable/bootstrapFleet.ts` writes:
 
 ```typescript
 {
-  id: string;
-  type: 'PICKUP' | 'DELIVERY';
-  sequence: number;
+  id: string
+  type: 'PICKUP' | 'DELIVERY'
+  sequence: number
   address: {
-    street: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
-  };
-  scheduledTime: number;
-  actualTime: number | null;
-  isCompleted: boolean;
-  createdAt: number;
-  updatedAt: number;
+    street: string
+    city: string
+    state: string
+    zip: string
+    country: string
+  }
+  scheduledTime: number
+  actualTime: number | null
+  isCompleted: boolean
+  createdAt: number
+  updatedAt: number
 }
 ```
 
@@ -287,13 +283,7 @@ type EventType =
 **DocumentType Values:**
 
 ```typescript
-type DocumentType =
-  | 'BOL'
-  | 'POD'
-  | 'RATE_CONFIRMATION'
-  | 'INVOICE'
-  | 'RECEIPT'
-  | 'OTHER'
+type DocumentType = 'BOL' | 'POD' | 'RATE_CONFIRMATION' | 'INVOICE' | 'RECEIPT' | 'OTHER'
 ```
 
 **Validation:** `DocumentSchema.parse(docData)`
